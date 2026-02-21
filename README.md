@@ -39,30 +39,18 @@ Para deploy no GitHub Pages, configure os seguintes secrets no repositorio:
 |--------|-----------|
 | `VITE_SUPABASE_URL` | URL do projeto Supabase |
 | `VITE_SUPABASE_ANON_KEY` | Anon Key do Supabase |
-| `VITE_ADMIN_USER` | Usuario de admin (ex: `admin`) |
-| `VITE_ADMIN_PASS` | Senha de admin (ex: `L$007`) |
+| `VITE_ADMIN_USER` | Usuario de admin |
+| `VITE_ADMIN_PASS` | Senha de admin |
 
 ### Configurar GitHub Pages
 
 1. Va em **Settings > Pages**
 2. Em **Source**, selecione **GitHub Actions**
-3. O deploy sera automatico a cada push na branch `main`
+3. O deploy sera automatico a cada push na branch `master`
 
 ### Configurar Dominio Personalizado
 
-O arquivo `CNAME` ja esta configurado para `news.olhaqueduas.com`.
-
-No seu provedor DNS, adicione:
-```
-CNAME @ olhaqueduas.github.io
-```
-ou
-```
-A @ 185.199.108.153
-A @ 185.199.109.153
-A @ 185.199.110.153
-A @ 185.199.111.153
-```
+Configure o arquivo `CNAME` com seu dominio e adicione no DNS um CNAME apontando para `seu-usuario.github.io`
 
 ### Supabase Row Level Security (RLS)
 
