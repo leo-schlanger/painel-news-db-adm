@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchSources, getCategories } from '../lib/supabase'
+import { useDebounce } from '../hooks/useDebounce'
 import {
   Radio,
   ExternalLink,
@@ -8,6 +9,41 @@ import {
   Search,
   RefreshCw
 } from 'lucide-react'
+import {
+  Button,
+  Card,
+  CardContent,
+  Badge,
+  InputWithIcon,
+  Skeleton,
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue
+} from '@/components/ui'
+
+function SourceCardSkeleton() {
+  return (
+    <Card className="p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-9 h-9 rounded-lg" />
+          <div>
+            <Skeleton className="h-5 w-32 mb-2" />
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </div>
+        </div>
+        <Skeleton className="w-5 h-5 rounded-full" />
+      </div>
+      <div className="mt-4 space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+    </Card>
+  )
+}
 
 export default function Sources() {
   const [sources, setSources] = useState([])
@@ -16,6 +52,7 @@ export default function Sources() {
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
 
+  const debouncedSearch = useDebounce(search, 300)
   const categories = getCategories()
 
   useEffect(() => {
@@ -36,9 +73,9 @@ export default function Sources() {
   }
 
   const filteredSources = sources.filter(source => {
-    const matchesSearch = !search ||
-      source.name.toLowerCase().includes(search.toLowerCase()) ||
-      source.url.toLowerCase().includes(search.toLowerCase())
+    const matchesSearch = !debouncedSearch ||
+      source.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      source.url.toLowerCase().includes(debouncedSearch.toLowerCase())
     const matchesCategory = !categoryFilter || source.category === categoryFilter
     return matchesSearch && matchesCategory
   })
@@ -55,14 +92,6 @@ export default function Sources() {
     })
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -73,114 +102,135 @@ export default function Sources() {
             {sources.length} fontes configuradas
           </p>
         </div>
-        <button
+        <Button
+          variant="secondary"
           onClick={loadSources}
-          className="btn-secondary flex items-center gap-2"
+          disabled={isLoading}
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           Atualizar
-        </button>
+        </Button>
       </div>
 
       {/* Filters */}
-      <div className="card p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar fonte..."
-              className="input pl-10"
-            />
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <InputWithIcon
+                icon={Search}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar fonte..."
+              />
+            </div>
+            <div className="w-full sm:w-48">
+              <Select
+                value={categoryFilter}
+                onValueChange={setCategoryFilter}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas categorias" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas categorias</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="select w-full sm:w-48"
-          >
-            <option value="">Todas categorias</option>
-            {categories.map(cat => (
-              <option key={cat.value} value={cat.value}>{cat.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Error */}
       {error && (
-        <div className="card p-4 bg-red-50 border-red-200 text-red-700">
-          Erro ao carregar fontes: {error}
-        </div>
+        <Card className="bg-red-50 border-red-200">
+          <CardContent className="p-4 text-red-700">
+            Erro ao carregar fontes: {error}
+          </CardContent>
+        </Card>
       )}
 
       {/* Sources Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredSources.map(source => (
-          <div key={source.id} className="card p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className={`p-2 rounded-lg ${source.is_active ? 'bg-green-100' : 'bg-gray-100'}`}>
-                  <Radio className={`w-5 h-5 ${source.is_active ? 'text-green-600' : 'text-gray-400'}`} />
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <SourceCardSkeleton />
+          <SourceCardSkeleton />
+          <SourceCardSkeleton />
+          <SourceCardSkeleton />
+          <SourceCardSkeleton />
+          <SourceCardSkeleton />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredSources.map(source => (
+            <Card key={source.id} className="p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`p-2 rounded-lg ${source.is_active ? 'bg-green-100' : 'bg-gray-100'}`}>
+                    <Radio className={`w-5 h-5 ${source.is_active ? 'text-green-600' : 'text-gray-400'}`} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate">{source.name}</h3>
+                    <Badge variant={source.category} className="mt-1">
+                      {source.category}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate">{source.name}</h3>
-                  <span className={`badge badge-${source.category} mt-1`}>
-                    {source.category}
+                {source.is_active ? (
+                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                )}
+              </div>
+
+              <div className="mt-4 space-y-2 text-sm">
+                <div className="flex justify-between text-gray-600">
+                  <span>Pais:</span>
+                  <span className="font-medium">{source.country || '-'}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Idioma:</span>
+                  <span className="font-medium">{source.language || 'en'}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Ultimo fetch:</span>
+                  <span className="font-medium text-xs">{formatDate(source.last_fetch)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Total fetches:</span>
+                  <span className="font-medium">{source.fetch_count || 0}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Erros:</span>
+                  <span className={`font-medium ${source.error_count > 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                    {source.error_count || 0}
                   </span>
                 </div>
               </div>
-              {source.is_active ? (
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-              ) : (
-                <XCircle className="w-5 h-5 text-gray-400 flex-shrink-0" />
-              )}
-            </div>
 
-            <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between text-gray-600">
-                <span>Pais:</span>
-                <span className="font-medium">{source.country || '-'}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Idioma:</span>
-                <span className="font-medium">{source.language || 'en'}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Ultimo fetch:</span>
-                <span className="font-medium text-xs">{formatDate(source.last_fetch)}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Total fetches:</span>
-                <span className="font-medium">{source.fetch_count || 0}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Erros:</span>
-                <span className={`font-medium ${source.error_count > 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                  {source.error_count || 0}
-                </span>
-              </div>
-            </div>
-
-            <a
-              href={source.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Ver feed RSS
-            </a>
-          </div>
-        ))}
-      </div>
-
-      {filteredSources.length === 0 && (
-        <div className="card p-12 text-center text-gray-500">
-          <Radio className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p>Nenhuma fonte encontrada</p>
+              <a
+                href={source.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Ver feed RSS
+              </a>
+            </Card>
+          ))}
         </div>
+      )}
+
+      {!isLoading && filteredSources.length === 0 && (
+        <Card className="p-12 text-center">
+          <Radio className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <p className="text-gray-500">Nenhuma fonte encontrada</p>
+        </Card>
       )}
     </div>
   )

@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Newspaper, Lock, User, AlertCircle } from 'lucide-react'
+import { Newspaper, Lock, User, AlertCircle, Loader2 } from 'lucide-react'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Button,
+  InputWithIcon
+} from '@/components/ui'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -30,7 +37,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="w-full max-w-md">
-        <div className="card p-8">
+        <Card className="p-8">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
               <Newspaper className="w-8 h-8 text-blue-600" />
@@ -51,54 +58,48 @@ export default function Login() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Usuario
               </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="input pl-10"
-                  placeholder="Digite seu usuario"
-                  required
-                  autoComplete="username"
-                />
-              </div>
+              <InputWithIcon
+                icon={User}
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Digite seu usuario"
+                required
+                autoComplete="username"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Senha
               </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input pl-10"
-                  placeholder="Digite sua senha"
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
+              <InputWithIcon
+                icon={Lock}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Digite sua senha"
+                required
+                autoComplete="current-password"
+              />
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={isLoading}
-              className="w-full btn-primary py-3 flex items-center justify-center gap-2"
+              className="w-full py-3"
             >
               {isLoading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
                   <Lock className="w-4 h-4" />
                   Entrar
                 </>
               )}
-            </button>
+            </Button>
           </form>
-        </div>
+        </Card>
 
         <p className="text-center text-gray-500 text-sm mt-6">
           Acesso restrito a administradores

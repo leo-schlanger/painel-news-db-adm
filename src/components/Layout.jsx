@@ -11,6 +11,7 @@ import {
   X
 } from 'lucide-react'
 import { useState } from 'react'
+import { Button } from '@/components/ui'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -67,25 +68,28 @@ export default function Layout() {
             </nav>
 
             <div className="flex items-center gap-2">
-              <button
+              <Button
+                variant="ghost"
                 onClick={handleLogout}
-                className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="hidden md:flex"
               >
                 <LogOut className="w-4 h-4" />
                 Sair
-              </button>
+              </Button>
 
               {/* Mobile menu button */}
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+                className="md:hidden"
               >
                 {mobileMenuOpen ? (
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className="w-6 h-6" />
                 ) : (
-                  <Menu className="w-6 h-6 text-gray-600" />
+                  <Menu className="w-6 h-6" />
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -112,13 +116,14 @@ export default function Layout() {
                   {label}
                 </NavLink>
               ))}
-              <button
+              <Button
+                variant="ghost"
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 w-full"
+                className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700"
               >
                 <LogOut className="w-5 h-5" />
                 Sair
-              </button>
+              </Button>
             </nav>
           </div>
         )}

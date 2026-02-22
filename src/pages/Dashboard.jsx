@@ -10,6 +10,14 @@ import {
   ExternalLink,
   ArrowRight
 } from 'lucide-react'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Badge,
+  Skeleton
+} from '@/components/ui'
 
 function StatCard({ icon: Icon, label, value, color = 'blue', subtext }) {
   const colorClasses = {
@@ -20,7 +28,7 @@ function StatCard({ icon: Icon, label, value, color = 'blue', subtext }) {
   }
 
   return (
-    <div className="card p-6">
+    <Card className="p-6">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-gray-500">{label}</p>
@@ -31,7 +39,21 @@ function StatCard({ icon: Icon, label, value, color = 'blue', subtext }) {
           <Icon className="w-6 h-6" />
         </div>
       </div>
-    </div>
+    </Card>
+  )
+}
+
+function StatCardSkeleton() {
+  return (
+    <Card className="p-6">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="h-8 w-16" />
+        </div>
+        <Skeleton className="w-12 h-12 rounded-lg" />
+      </div>
+    </Card>
   )
 }
 
@@ -67,9 +89,9 @@ function CategoryBar({ category, count, total }) {
 
 function RecentNewsItem({ news }) {
   const getPriorityClass = (score) => {
-    if (score >= 3) return 'priority-high'
-    if (score >= 1) return 'priority-medium'
-    return 'priority-low'
+    if (score >= 3) return 'text-red-600 font-semibold'
+    if (score >= 1) return 'text-orange-500 font-medium'
+    return 'text-gray-500'
   }
 
   return (
@@ -85,9 +107,9 @@ function RecentNewsItem({ news }) {
             {news.title}
           </p>
           <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-            <span className={`badge badge-${news.category}`}>
+            <Badge variant={news.category}>
               {news.category}
-            </span>
+            </Badge>
             <span className={getPriorityClass(news.priority_score)}>
               Score: {news.priority_score?.toFixed(1)}
             </span>
@@ -97,6 +119,20 @@ function RecentNewsItem({ news }) {
         <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0" />
       </div>
     </a>
+  )
+}
+
+function RecentNewsSkeleton() {
+  return (
+    <div className="p-4 border-b border-gray-100 last:border-0">
+      <Skeleton className="h-4 w-full mb-2" />
+      <Skeleton className="h-4 w-3/4 mb-3" />
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-5 w-20 rounded-full" />
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+    </div>
   )
 }
 
@@ -127,17 +163,9 @@ export default function Dashboard() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-
   if (error) {
     return (
-      <div className="card p-6 bg-red-50 border-red-200">
+      <Card className="p-6 bg-red-50 border-red-200">
         <div className="flex items-center gap-3 text-red-700">
           <AlertTriangle className="w-6 h-6" />
           <div>
@@ -146,7 +174,7 @@ export default function Dashboard() {
             <p className="text-xs mt-2">Verifique se as variaveis de ambiente do Supabase estao configuradas.</p>
           </div>
         </div>
-      </div>
+      </Card>
     )
   }
 
@@ -163,48 +191,66 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          icon={Newspaper}
-          label="Total de Noticias"
-          value={stats?.totalNews?.toLocaleString()}
-          color="blue"
-        />
-        <StatCard
-          icon={Clock}
-          label="Ultimas 24h"
-          value={stats?.newsLast24h?.toLocaleString()}
-          color="green"
-        />
-        <StatCard
-          icon={TrendingUp}
-          label="Alta Prioridade"
-          value={stats?.highPriority?.toLocaleString()}
-          color="orange"
-          subtext="Score >= 2"
-        />
-        <StatCard
-          icon={Radio}
-          label="Fontes Ativas"
-          value={`${stats?.activeSources || 0}/${stats?.totalSources || 0}`}
-          color="purple"
-        />
+        {isLoading ? (
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
+        ) : (
+          <>
+            <StatCard
+              icon={Newspaper}
+              label="Total de Noticias"
+              value={stats?.totalNews?.toLocaleString()}
+              color="blue"
+            />
+            <StatCard
+              icon={Clock}
+              label="Ultimas 24h"
+              value={stats?.newsLast24h?.toLocaleString()}
+              color="green"
+            />
+            <StatCard
+              icon={TrendingUp}
+              label="Alta Prioridade"
+              value={stats?.highPriority?.toLocaleString()}
+              color="orange"
+              subtext="Score >= 2"
+            />
+            <StatCard
+              icon={Radio}
+              label="Fontes Ativas"
+              value={`${stats?.activeSources || 0}/${stats?.totalSources || 0}`}
+              color="purple"
+            />
+          </>
+        )}
       </div>
 
       {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent High Priority News */}
-        <div className="lg:col-span-2 card">
-          <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900">Noticias de Alta Prioridade</h3>
+        <Card className="lg:col-span-2">
+          <CardHeader className="p-4 border-b border-gray-100 flex-row items-center justify-between">
+            <CardTitle className="text-base">Noticias de Alta Prioridade</CardTitle>
             <Link
               to="/news"
               className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
             >
               Ver todas <ArrowRight className="w-4 h-4" />
             </Link>
-          </div>
+          </CardHeader>
           <div className="divide-y divide-gray-100">
-            {recentNews.length > 0 ? (
+            {isLoading ? (
+              <>
+                <RecentNewsSkeleton />
+                <RecentNewsSkeleton />
+                <RecentNewsSkeleton />
+                <RecentNewsSkeleton />
+              </>
+            ) : recentNews.length > 0 ? (
               recentNews.map(news => (
                 <RecentNewsItem key={news.id} news={news} />
               ))
@@ -215,24 +261,41 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* Categories Distribution */}
-        <div className="card">
-          <div className="p-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-900">Por Categoria</h3>
-          </div>
-          <div className="p-4 space-y-4">
-            {categories.map(cat => (
-              <CategoryBar
-                key={cat.value}
-                category={cat.value}
-                count={stats?.byCategory?.[cat.value] || 0}
-                total={totalByCategory}
-              />
-            ))}
-          </div>
-        </div>
+        <Card>
+          <CardHeader className="p-4 border-b border-gray-100">
+            <CardTitle className="text-base">Por Categoria</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 space-y-4">
+            {isLoading ? (
+              <>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-2 w-full rounded-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-2 w-full rounded-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-2 w-full rounded-full" />
+                </div>
+              </>
+            ) : (
+              categories.map(cat => (
+                <CategoryBar
+                  key={cat.value}
+                  category={cat.value}
+                  count={stats?.byCategory?.[cat.value] || 0}
+                  total={totalByCategory}
+                />
+              ))
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

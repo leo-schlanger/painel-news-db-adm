@@ -9,6 +9,21 @@ import {
   RefreshCw,
   Newspaper
 } from 'lucide-react'
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Badge,
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+  Skeleton
+} from '@/components/ui'
 
 function StatCard({ icon: Icon, label, value, color = 'blue' }) {
   const colorClasses = {
@@ -19,7 +34,7 @@ function StatCard({ icon: Icon, label, value, color = 'blue' }) {
   }
 
   return (
-    <div className="card p-6">
+    <Card className="p-6">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-gray-500">{label}</p>
@@ -29,7 +44,33 @@ function StatCard({ icon: Icon, label, value, color = 'blue' }) {
           <Icon className="w-6 h-6" />
         </div>
       </div>
-    </div>
+    </Card>
+  )
+}
+
+function StatCardSkeleton() {
+  return (
+    <Card className="p-6">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="h-8 w-16" />
+        </div>
+        <Skeleton className="w-12 h-12 rounded-lg" />
+      </div>
+    </Card>
+  )
+}
+
+function TableRowSkeleton({ cols = 5 }) {
+  return (
+    <TableRow>
+      {Array.from({ length: cols }).map((_, i) => (
+        <TableCell key={i}>
+          <Skeleton className="h-4 w-full" />
+        </TableCell>
+      ))}
+    </TableRow>
   )
 }
 
@@ -73,14 +114,6 @@ export default function Stats() {
     })
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -89,162 +122,170 @@ export default function Stats() {
           <h2 className="text-2xl font-bold text-gray-900">Estatisticas</h2>
           <p className="text-gray-500 mt-1">Metricas e logs do sistema</p>
         </div>
-        <button
+        <Button
+          variant="secondary"
           onClick={loadData}
-          className="btn-secondary flex items-center gap-2"
+          disabled={isLoading}
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           Atualizar
-        </button>
+        </Button>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="card p-4 bg-red-50 border-red-200 text-red-700">
-          Erro ao carregar estatisticas: {error}
-        </div>
+        <Card className="bg-red-50 border-red-200">
+          <CardContent className="p-4 text-red-700">
+            Erro ao carregar estatisticas: {error}
+          </CardContent>
+        </Card>
       )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          icon={Newspaper}
-          label="Total de Noticias"
-          value={stats?.totalNews?.toLocaleString()}
-          color="blue"
-        />
-        <StatCard
-          icon={Clock}
-          label="Ultimas 24h"
-          value={stats?.newsLast24h?.toLocaleString()}
-          color="green"
-        />
-        <StatCard
-          icon={TrendingUp}
-          label="Alta Prioridade"
-          value={stats?.highPriority?.toLocaleString()}
-          color="orange"
-        />
-        <StatCard
-          icon={BarChart3}
-          label="Fontes Ativas"
-          value={`${stats?.activeSources || 0}/${stats?.totalSources || 0}`}
-          color="blue"
-        />
+        {isLoading ? (
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
+        ) : (
+          <>
+            <StatCard
+              icon={Newspaper}
+              label="Total de Noticias"
+              value={stats?.totalNews?.toLocaleString()}
+              color="blue"
+            />
+            <StatCard
+              icon={Clock}
+              label="Ultimas 24h"
+              value={stats?.newsLast24h?.toLocaleString()}
+              color="green"
+            />
+            <StatCard
+              icon={TrendingUp}
+              label="Alta Prioridade"
+              value={stats?.highPriority?.toLocaleString()}
+              color="orange"
+            />
+            <StatCard
+              icon={BarChart3}
+              label="Fontes Ativas"
+              value={`${stats?.activeSources || 0}/${stats?.totalSources || 0}`}
+              color="blue"
+            />
+          </>
+        )}
       </div>
 
       {/* Categories Table */}
-      <div className="card">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">Noticias por Categoria</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Categoria
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
-                  Quantidade
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
-                  Porcentagem
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map(cat => {
+      <Card>
+        <CardHeader className="p-4 border-b border-gray-200">
+          <CardTitle className="text-base">Noticias por Categoria</CardTitle>
+        </CardHeader>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Categoria</TableHead>
+              <TableHead className="text-right">Quantidade</TableHead>
+              <TableHead className="text-right">Porcentagem</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <>
+                <TableRowSkeleton cols={3} />
+                <TableRowSkeleton cols={3} />
+                <TableRowSkeleton cols={3} />
+              </>
+            ) : (
+              categories.map(cat => {
                 const count = stats?.byCategory?.[cat.value] || 0
                 const total = stats?.totalNews || 1
                 const percentage = ((count / total) * 100).toFixed(1)
                 return (
-                  <tr key={cat.value} className="table-row">
-                    <td className="px-4 py-3">
-                      <span className={`badge badge-${cat.value}`}>{cat.label}</span>
-                    </td>
-                    <td className="px-4 py-3 text-right font-medium">
+                  <TableRow key={cat.value}>
+                    <TableCell>
+                      <Badge variant={cat.value}>{cat.label}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
                       {count.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-right text-gray-500">
+                    </TableCell>
+                    <TableCell className="text-right text-gray-500">
                       {percentage}%
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              })
+            )}
+          </TableBody>
+        </Table>
+      </Card>
 
       {/* Recent Fetch Logs */}
-      <div className="card">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">Logs de Fetch Recentes</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Fonte
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
-                  Noticias
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
-                  Duracao
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Data
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                    Nenhum log encontrado
-                  </td>
-                </tr>
-              ) : (
-                logs.map(log => (
-                  <tr key={log.id} className="table-row">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                      {log.sources?.name || `Source #${log.source_id}`}
-                    </td>
-                    <td className="px-4 py-3">
-                      {log.status === 'success' ? (
-                        <span className="inline-flex items-center gap-1 text-green-600 text-sm">
-                          <CheckCircle className="w-4 h-4" />
-                          Sucesso
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-red-600 text-sm" title={log.error_message}>
-                          <XCircle className="w-4 h-4" />
-                          Erro
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right text-sm">
-                      {log.news_count || 0}
-                    </td>
-                    <td className="px-4 py-3 text-right text-sm text-gray-500">
-                      {log.duration_ms ? `${log.duration_ms}ms` : '-'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {formatDate(log.created_at)}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Card>
+        <CardHeader className="p-4 border-b border-gray-200">
+          <CardTitle className="text-base">Logs de Fetch Recentes</CardTitle>
+        </CardHeader>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Fonte</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Noticias</TableHead>
+              <TableHead className="text-right">Duracao</TableHead>
+              <TableHead>Data</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <>
+                <TableRowSkeleton cols={5} />
+                <TableRowSkeleton cols={5} />
+                <TableRowSkeleton cols={5} />
+              </>
+            ) : logs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                  Nenhum log encontrado
+                </TableCell>
+              </TableRow>
+            ) : (
+              logs.map(log => (
+                <TableRow key={log.id}>
+                  <TableCell className="text-sm font-medium text-gray-900">
+                    {log.sources?.name || `Source #${log.source_id}`}
+                  </TableCell>
+                  <TableCell>
+                    {log.status === 'success' ? (
+                      <Badge variant="success" className="gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Sucesso
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive" className="gap-1" title={log.error_message}>
+                        <XCircle className="w-3 h-3" />
+                        Erro
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right text-sm">
+                    {log.news_count || 0}
+                  </TableCell>
+                  <TableCell className="text-right text-sm text-gray-500">
+                    {log.duration_ms ? `${log.duration_ms}ms` : '-'}
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-500">
+                    {formatDate(log.created_at)}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   )
 }
