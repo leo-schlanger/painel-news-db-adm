@@ -127,14 +127,14 @@ export default function Sources() {
             </div>
             <div className="w-full sm:w-48">
               <Select
-                value={categoryFilter}
-                onValueChange={setCategoryFilter}
+                value={categoryFilter || '__all__'}
+                onValueChange={(value) => setCategoryFilter(value === '__all__' ? '' : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas categorias" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas categorias</SelectItem>
+                  <SelectItem value="__all__">Todas categorias</SelectItem>
                   {categories.map(cat => (
                     <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
                   ))}

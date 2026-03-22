@@ -262,14 +262,14 @@ export default function NewsList() {
                     Categoria
                   </label>
                   <Select
-                    value={filters.category}
-                    onValueChange={(value) => handleFilterChange('category', value)}
+                    value={filters.category || '__all__'}
+                    onValueChange={(value) => handleFilterChange('category', value === '__all__' ? '' : value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Todas" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todas</SelectItem>
+                      <SelectItem value="__all__">Todas</SelectItem>
                       {categories.map(cat => (
                         <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
                       ))}
@@ -283,14 +283,14 @@ export default function NewsList() {
                     Fonte
                   </label>
                   <Select
-                    value={filters.sourceId}
-                    onValueChange={(value) => handleFilterChange('sourceId', value)}
+                    value={filters.sourceId || '__all__'}
+                    onValueChange={(value) => handleFilterChange('sourceId', value === '__all__' ? '' : value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Todas" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todas</SelectItem>
+                      <SelectItem value="__all__">Todas</SelectItem>
                       {sources.map(source => (
                         <SelectItem key={source.id} value={source.id}>{source.name}</SelectItem>
                       ))}
