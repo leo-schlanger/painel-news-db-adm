@@ -10,7 +10,8 @@ import {
   SortDesc,
   X,
   RefreshCw,
-  Loader2
+  Flame,
+  Zap
 } from 'lucide-react'
 import {
   Button,
@@ -47,10 +48,13 @@ function NewsRowSkeleton() {
 }
 
 function NewsRow({ news }) {
-  const getPriorityClass = (score) => {
-    if (score >= 3) return 'text-red-600 font-semibold'
-    if (score >= 1) return 'text-orange-500 font-medium'
-    return 'text-gray-500'
+  const categories = getCategories()
+  const categoryLabel = categories.find(c => c.value === news.category)?.label || news.category
+
+  const getPriorityIcon = (score) => {
+    if (score >= 3) return <Flame className="w-4 h-4 text-red-500" />
+    if (score >= 1) return <Zap className="w-4 h-4 text-orange-500" />
+    return null
   }
 
   const formatDate = (dateString) => {
@@ -66,17 +70,17 @@ function NewsRow({ news }) {
   }
 
   return (
-    <TableRow>
+    <TableRow className="group">
       <TableCell>
         <div className="max-w-md">
           <a
             href={news.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2 flex items-start gap-2 group"
+            className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2 flex items-start gap-2 group/link"
           >
             <span className="flex-1">{news.title}</span>
-            <ExternalLink className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400 group-hover:text-blue-500" />
+            <ExternalLink className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-300 group-hover/link:text-blue-500 transition-colors" />
           </a>
           {news.description && (
             <p className="text-xs text-gray-500 mt-1 line-clamp-1">
@@ -87,16 +91,19 @@ function NewsRow({ news }) {
       </TableCell>
       <TableCell>
         <Badge variant={news.category}>
-          {news.category}
+          {categoryLabel}
         </Badge>
       </TableCell>
       <TableCell className="text-sm text-gray-600">
         {news.sources?.name || '-'}
       </TableCell>
-      <TableCell className="text-sm whitespace-nowrap">
-        <span className={getPriorityClass(news.priority_score)}>
-          {news.priority_score?.toFixed(1) || '0.0'}
-        </span>
+      <TableCell>
+        <div className="flex items-center gap-1.5">
+          {getPriorityIcon(news.priority_score)}
+          <span className="text-sm font-medium text-gray-700">
+            {news.priority_score?.toFixed(1) || '0.0'}
+          </span>
+        </div>
       </TableCell>
       <TableCell className="text-sm text-gray-500 whitespace-nowrap">
         {formatDate(news.fetched_at)}
@@ -209,7 +216,7 @@ export default function NewsList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Noticias</h2>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">Noticias</h2>
           <p className="text-gray-500 mt-1">
             {totalCount.toLocaleString()} noticias encontradas
           </p>
@@ -247,18 +254,18 @@ export default function NewsList() {
               <Filter className="w-4 h-4" />
               Filtros
               {hasActiveFilters && (
-                <span className="w-2 h-2 rounded-full bg-white"></span>
+                <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
               )}
             </Button>
           </div>
 
           {/* Expanded Filters */}
           {showFilters && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-gray-100">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Category */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Categoria
                   </label>
                   <Select
@@ -279,7 +286,7 @@ export default function NewsList() {
 
                 {/* Source */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Fonte
                   </label>
                   <Select
@@ -300,7 +307,7 @@ export default function NewsList() {
 
                 {/* Min Score */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Score Minimo
                   </label>
                   <Input
@@ -315,7 +322,7 @@ export default function NewsList() {
 
                 {/* Date Range */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Data Inicial
                   </label>
                   <InputWithIcon
@@ -327,7 +334,7 @@ export default function NewsList() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Data Final
                   </label>
                   <InputWithIcon
@@ -345,6 +352,7 @@ export default function NewsList() {
                     variant="ghost"
                     size="sm"
                     onClick={clearFilters}
+                    className="text-gray-500 hover:text-red-600"
                   >
                     <X className="w-4 h-4" />
                     Limpar filtros
@@ -358,7 +366,7 @@ export default function NewsList() {
 
       {/* Error State */}
       {error && (
-        <Card className="bg-red-50 border-red-200">
+        <Card className="bg-gradient-to-r from-red-50 to-rose-50 border-red-200">
           <CardContent className="p-4 text-red-700">
             Erro ao carregar noticias: {error}
           </CardContent>
@@ -374,24 +382,24 @@ export default function NewsList() {
               <TableHead>Categoria</TableHead>
               <TableHead>Fonte</TableHead>
               <TableHead
-                className="cursor-pointer hover:bg-gray-100"
+                className="cursor-pointer hover:bg-gray-100 transition-colors rounded-lg"
                 onClick={() => toggleSort('priority_score')}
               >
                 <div className="flex items-center gap-1">
                   Score
                   {filters.orderBy === 'priority_score' && (
-                    filters.orderDir === 'desc' ? <SortDesc className="w-4 h-4" /> : <SortAsc className="w-4 h-4" />
+                    filters.orderDir === 'desc' ? <SortDesc className="w-4 h-4 text-blue-600" /> : <SortAsc className="w-4 h-4 text-blue-600" />
                   )}
                 </div>
               </TableHead>
               <TableHead
-                className="cursor-pointer hover:bg-gray-100"
+                className="cursor-pointer hover:bg-gray-100 transition-colors rounded-lg"
                 onClick={() => toggleSort('fetched_at')}
               >
                 <div className="flex items-center gap-1">
                   Data
                   {filters.orderBy === 'fetched_at' && (
-                    filters.orderDir === 'desc' ? <SortDesc className="w-4 h-4" /> : <SortAsc className="w-4 h-4" />
+                    filters.orderDir === 'desc' ? <SortDesc className="w-4 h-4 text-blue-600" /> : <SortAsc className="w-4 h-4 text-blue-600" />
                   )}
                 </div>
               </TableHead>
@@ -409,7 +417,11 @@ export default function NewsList() {
             ) : news.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-12 text-gray-500">
-                  Nenhuma noticia encontrada
+                  <div className="flex flex-col items-center gap-2">
+                    <Search className="w-8 h-8 text-gray-300" />
+                    <p className="font-medium">Nenhuma noticia encontrada</p>
+                    <p className="text-sm text-gray-400">Tente ajustar os filtros de busca</p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (

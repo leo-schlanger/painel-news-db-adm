@@ -7,7 +7,9 @@ import {
   CheckCircle,
   XCircle,
   Search,
-  RefreshCw
+  RefreshCw,
+  Globe,
+  Clock
 } from 'lucide-react'
 import {
   Button,
@@ -25,10 +27,10 @@ import {
 
 function SourceCardSkeleton() {
   return (
-    <Card className="p-4">
+    <Card className="p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Skeleton className="w-9 h-9 rounded-lg" />
+          <Skeleton className="w-11 h-11 rounded-xl" />
           <div>
             <Skeleton className="h-5 w-32 mb-2" />
             <Skeleton className="h-5 w-20 rounded-full" />
@@ -72,6 +74,10 @@ export default function Sources() {
     }
   }
 
+  const getCategoryLabel = (value) => {
+    return categories.find(c => c.value === value)?.label || value
+  }
+
   const filteredSources = sources.filter(source => {
     const matchesSearch = !debouncedSearch ||
       source.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
@@ -92,14 +98,16 @@ export default function Sources() {
     })
   }
 
+  const activeSources = sources.filter(s => s.is_active).length
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Fontes RSS</h2>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">Fontes RSS</h2>
           <p className="text-gray-500 mt-1">
-            {sources.length} fontes configuradas
+            {activeSources} ativas de {sources.length} fontes configuradas
           </p>
         </div>
         <Button
@@ -147,7 +155,7 @@ export default function Sources() {
 
       {/* Error */}
       {error && (
-        <Card className="bg-red-50 border-red-200">
+        <Card className="bg-gradient-to-r from-red-50 to-rose-50 border-red-200">
           <CardContent className="p-4 text-red-700">
             Erro ao carregar fontes: {error}
           </CardContent>
@@ -167,60 +175,69 @@ export default function Sources() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredSources.map(source => (
-            <Card key={source.id} className="p-4 hover:shadow-md transition-shadow">
+            <Card key={source.id} className="p-5 group">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`p-2 rounded-lg ${source.is_active ? 'bg-green-100' : 'bg-gray-100'}`}>
-                    <Radio className={`w-5 h-5 ${source.is_active ? 'text-green-600' : 'text-gray-400'}`} />
+                  <div className={`p-2.5 rounded-xl shadow-sm ${source.is_active ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' : 'bg-gray-200'}`}>
+                    <Radio className={`w-5 h-5 ${source.is_active ? 'text-white' : 'text-gray-400'}`} />
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-semibold text-gray-900 truncate">{source.name}</h3>
-                    <Badge variant={source.category} className="mt-1">
-                      {source.category}
+                    <Badge variant={source.category} className="mt-1.5">
+                      {getCategoryLabel(source.category)}
                     </Badge>
                   </div>
                 </div>
                 {source.is_active ? (
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Ativo
+                  </div>
                 ) : (
-                  <XCircle className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-medium">
+                    <XCircle className="w-3.5 h-3.5" />
+                    Inativo
+                  </div>
                 )}
               </div>
 
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between text-gray-600">
-                  <span>Pais:</span>
-                  <span className="font-medium">{source.country || '-'}</span>
+              <div className="mt-4 space-y-2.5 text-sm">
+                <div className="flex items-center justify-between text-gray-600">
+                  <div className="flex items-center gap-1.5">
+                    <Globe className="w-4 h-4 text-gray-400" />
+                    <span>Pais / Idioma</span>
+                  </div>
+                  <span className="font-medium text-gray-900">{source.country || '-'} / {source.language || 'en'}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Idioma:</span>
-                  <span className="font-medium">{source.language || 'en'}</span>
+                <div className="flex items-center justify-between text-gray-600">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-gray-400" />
+                    <span>Ultimo fetch</span>
+                  </div>
+                  <span className="font-medium text-gray-900 text-xs">{formatDate(source.last_fetch)}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Ultimo fetch:</span>
-                  <span className="font-medium text-xs">{formatDate(source.last_fetch)}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Total fetches:</span>
-                  <span className="font-medium">{source.fetch_count || 0}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Erros:</span>
-                  <span className={`font-medium ${source.error_count > 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                    {source.error_count || 0}
-                  </span>
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-gray-900">{source.fetch_count || 0}</p>
+                    <p className="text-xs text-gray-500">Fetches</p>
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-lg font-bold ${source.error_count > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                      {source.error_count || 0}
+                    </p>
+                    <p className="text-xs text-gray-500">Erros</p>
+                  </div>
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Feed
+                  </a>
                 </div>
               </div>
-
-              <a
-                href={source.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Ver feed RSS
-              </a>
             </Card>
           ))}
         </div>
@@ -228,8 +245,11 @@ export default function Sources() {
 
       {!isLoading && filteredSources.length === 0 && (
         <Card className="p-12 text-center">
-          <Radio className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p className="text-gray-500">Nenhuma fonte encontrada</p>
+          <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Radio className="w-8 h-8 text-gray-400" />
+          </div>
+          <p className="text-gray-500 font-medium">Nenhuma fonte encontrada</p>
+          <p className="text-gray-400 text-sm mt-1">Tente ajustar os filtros de busca</p>
         </Card>
       )}
     </div>

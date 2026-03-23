@@ -42,7 +42,8 @@ const PaginationLink = ({
     variant={isActive ? "outline" : "ghost"}
     size={size}
     className={cn(
-      isActive && "border-blue-500 bg-blue-50 text-blue-600",
+      "rounded-lg",
+      isActive && "border-blue-500 bg-blue-50 text-blue-600 hover:bg-blue-100",
       className
     )}
     {...props}
@@ -79,7 +80,7 @@ PaginationNext.displayName = "PaginationNext"
 const PaginationEllipsis = ({ className, ...props }) => (
   <span
     aria-hidden
-    className={cn("flex h-9 w-9 items-center justify-center", className)}
+    className={cn("flex h-9 w-9 items-center justify-center text-gray-400", className)}
     {...props}
   >
     <MoreHorizontal className="h-4 w-4" />
@@ -104,31 +105,60 @@ function SimplePagination({
   const end = Math.min(currentPage * perPage, totalCount)
 
   return (
-    <div className={cn("flex items-center justify-between px-4 py-3 border-t border-gray-200", className)}>
+    <div className={cn("flex items-center justify-between px-4 py-4 border-t border-gray-100 bg-gray-50/30", className)}>
       {showInfo && (
         <p className="text-sm text-gray-500">
-          Mostrando {start} - {end} de {totalCount?.toLocaleString()}
+          Mostrando <span className="font-medium text-gray-700">{start}</span> - <span className="font-medium text-gray-700">{end}</span> de <span className="font-medium text-gray-700">{totalCount?.toLocaleString()}</span>
         </p>
       )}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
+          className="gap-1"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-4 w-4" />
+          Anterior
         </Button>
-        <span className="text-sm text-gray-600">
-          Pagina {currentPage} de {totalPages}
-        </span>
+        <div className="flex items-center gap-1 px-2">
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            let pageNum
+            if (totalPages <= 5) {
+              pageNum = i + 1
+            } else if (currentPage <= 3) {
+              pageNum = i + 1
+            } else if (currentPage >= totalPages - 2) {
+              pageNum = totalPages - 4 + i
+            } else {
+              pageNum = currentPage - 2 + i
+            }
+            return (
+              <Button
+                key={pageNum}
+                variant={currentPage === pageNum ? "default" : "ghost"}
+                size="sm"
+                onClick={() => onPageChange(pageNum)}
+                className={cn(
+                  "w-9 h-9 p-0",
+                  currentPage === pageNum && "pointer-events-none"
+                )}
+              >
+                {pageNum}
+              </Button>
+            )
+          })}
+        </div>
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
+          className="gap-1"
         >
-          <ChevronRight className="h-5 w-5" />
+          Proximo
+          <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
     </div>
