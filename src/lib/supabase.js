@@ -189,111 +189,91 @@ export async function fetchStatsWithTrends() {
 
 // Fetch news over time (for line chart)
 export async function fetchNewsOverTime(days = 7) {
-  const startDate = new Date()
-  startDate.setDate(startDate.getDate() - days)
-  startDate.setHours(0, 0, 0, 0)
+  const results = []
 
-  const { data, error } = await supabase
-    .from('news')
-    .select('fetched_at')
-    .gte('fetched_at', startDate.toISOString())
-    .order('fetched_at', { ascending: true })
-
-  if (error) throw error
-
-  // Group by day
-  const grouped = {}
-  const categories = getCategories()
-
+  // Query count for each day in parallel
+  const queries = []
   for (let i = 0; i < days; i++) {
-    const date = new Date(startDate)
-    date.setDate(date.getDate() + i)
-    const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-    grouped[dateStr] = 0
+    const dayStart = new Date()
+    dayStart.setDate(dayStart.getDate() - (days - 1 - i))
+    dayStart.setHours(0, 0, 0, 0)
+
+    const dayEnd = new Date(dayStart)
+    dayEnd.setHours(23, 59, 59, 999)
+
+    const dateStr = dayStart.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+
+    queries.push(
+      supabase
+        .from('news')
+        .select('*', { count: 'exact', head: true })
+        .gte('fetched_at', dayStart.toISOString())
+        .lte('fetched_at', dayEnd.toISOString())
+        .then(({ count }) => ({ date: dateStr, count: count || 0 }))
+    )
   }
 
-  data?.forEach(item => {
-    const date = new Date(item.fetched_at)
-    const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-    if (grouped[dateStr] !== undefined) {
-      grouped[dateStr]++
-    }
-  })
-
-  return Object.entries(grouped).map(([date, count]) => ({
-    date,
-    count
-  }))
+  return Promise.all(queries)
 }
 
 // Fetch news by category (for bar chart)
 export async function fetchNewsByCategory() {
-  const { data, error } = await supabase
-    .from('news')
-    .select('category')
-
-  if (error) throw error
-
   const categories = getCategories()
-  const grouped = {}
 
-  categories.forEach(cat => {
-    grouped[cat.value] = 0
-  })
+  // Query count for each category in parallel
+  const queries = categories.map(cat =>
+    supabase
+      .from('news')
+      .select('*', { count: 'exact', head: true })
+      .ilike('category', cat.value)
+      .then(({ count }) => ({
+        category: cat.label,
+        value: cat.value,
+        count: count || 0
+      }))
+  )
 
-  data?.forEach(item => {
-    if (grouped[item.category] !== undefined) {
-      grouped[item.category]++
-    }
-  })
+  const results = await Promise.all(queries)
 
-  return categories.map(cat => ({
-    category: cat.label,
-    value: cat.value,
-    count: grouped[cat.value] || 0
-  }))
+  // Filter out categories with 0 count and sort by count descending
+  return results.filter(r => r.count > 0).sort((a, b) => b.count - a.count)
 }
 
 // Fetch fetch logs over time (for area chart)
 export async function fetchLogsOverTime(days = 7) {
-  const startDate = new Date()
-  startDate.setDate(startDate.getDate() - days)
-  startDate.setHours(0, 0, 0, 0)
+  const results = []
 
-  const { data, error } = await supabase
-    .from('fetch_logs')
-    .select('created_at, status, news_count')
-    .gte('created_at', startDate.toISOString())
-    .order('created_at', { ascending: true })
-
-  if (error) throw error
-
-  // Group by day
-  const grouped = {}
-
+  // Query for each day in parallel
+  const queries = []
   for (let i = 0; i < days; i++) {
-    const date = new Date(startDate)
-    date.setDate(date.getDate() + i)
-    const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-    grouped[dateStr] = { fetches: 0, news: 0, errors: 0 }
+    const dayStart = new Date()
+    dayStart.setDate(dayStart.getDate() - (days - 1 - i))
+    dayStart.setHours(0, 0, 0, 0)
+
+    const dayEnd = new Date(dayStart)
+    dayEnd.setHours(23, 59, 59, 999)
+
+    const dateStr = dayStart.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+
+    // Fetch logs for this day (with higher limit to get all)
+    queries.push(
+      supabase
+        .from('fetch_logs')
+        .select('status, news_count')
+        .gte('created_at', dayStart.toISOString())
+        .lte('created_at', dayEnd.toISOString())
+        .limit(5000)
+        .then(({ data, error }) => {
+          if (error) throw error
+          const fetches = data?.length || 0
+          const news = data?.reduce((sum, log) => sum + (log.news_count || 0), 0) || 0
+          const errors = data?.filter(log => log.status === 'error').length || 0
+          return { date: dateStr, fetches, news, errors }
+        })
+    )
   }
 
-  data?.forEach(item => {
-    const date = new Date(item.created_at)
-    const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-    if (grouped[dateStr]) {
-      grouped[dateStr].fetches++
-      grouped[dateStr].news += item.news_count || 0
-      if (item.status === 'error') {
-        grouped[dateStr].errors++
-      }
-    }
-  })
-
-  return Object.entries(grouped).map(([date, data]) => ({
-    date,
-    ...data
-  }))
+  return Promise.all(queries)
 }
 
 // Fetch source performance analytics
