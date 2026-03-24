@@ -4,6 +4,7 @@ import { fetchStatsWithTrends, fetchNews, fetchNewsOverTime, getCategoryInfo } f
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import { useSettings } from '@/context/SettingsContext'
+import { useTheme } from '@/context/ThemeContext'
 import { useFavorites } from '@/context/FavoritesContext'
 import { toast } from '@/hooks/useToast'
 import { LineChart } from '@/components/charts'
@@ -127,70 +128,72 @@ function StatCardSkeleton() {
   )
 }
 
-function CategoryCard({ category, count, total, color }) {
+function CategoryCard({ category, count, total, color, isDark }) {
   const percentage = total > 0 ? (count / total) * 100 : 0
 
-  // Semantic color system matching badge colors
-  const colorConfig = {
+  // Color system with light and dark variants
+  const colorStyles = {
     green: {
-      bg: 'bg-emerald-500',
-      light: 'bg-emerald-100 dark:bg-emerald-950',
-      border: 'border-emerald-300 dark:border-emerald-800',
-      text: 'text-emerald-800 dark:text-emerald-300'
+      bar: '#10b981',
+      light: { bg: '#ecfdf5', border: '#a7f3d0', text: '#065f46' },
+      dark: { bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.3)', text: '#6ee7b7' }
     },
     yellow: {
-      bg: 'bg-amber-500',
-      light: 'bg-amber-100 dark:bg-amber-950',
-      border: 'border-amber-300 dark:border-amber-800',
-      text: 'text-amber-800 dark:text-amber-300'
+      bar: '#f59e0b',
+      light: { bg: '#fffbeb', border: '#fcd34d', text: '#92400e' },
+      dark: { bg: 'rgba(245, 158, 11, 0.15)', border: 'rgba(245, 158, 11, 0.3)', text: '#fcd34d' }
     },
     blue: {
-      bg: 'bg-sky-500',
-      light: 'bg-sky-100 dark:bg-sky-950',
-      border: 'border-sky-300 dark:border-sky-800',
-      text: 'text-sky-800 dark:text-sky-300'
+      bar: '#0ea5e9',
+      light: { bg: '#f0f9ff', border: '#7dd3fc', text: '#0c4a6e' },
+      dark: { bg: 'rgba(14, 165, 233, 0.15)', border: 'rgba(14, 165, 233, 0.3)', text: '#7dd3fc' }
     },
     pink: {
-      bg: 'bg-fuchsia-500',
-      light: 'bg-fuchsia-100 dark:bg-fuchsia-950',
-      border: 'border-fuchsia-300 dark:border-fuchsia-800',
-      text: 'text-fuchsia-800 dark:text-fuchsia-300'
+      bar: '#d946ef',
+      light: { bg: '#fdf4ff', border: '#f0abfc', text: '#86198f' },
+      dark: { bg: 'rgba(217, 70, 239, 0.15)', border: 'rgba(217, 70, 239, 0.3)', text: '#f0abfc' }
     },
     red: {
-      bg: 'bg-rose-500',
-      light: 'bg-rose-100 dark:bg-rose-950',
-      border: 'border-rose-300 dark:border-rose-800',
-      text: 'text-rose-800 dark:text-rose-300'
+      bar: '#f43f5e',
+      light: { bg: '#fff1f2', border: '#fda4af', text: '#9f1239' },
+      dark: { bg: 'rgba(244, 63, 94, 0.15)', border: 'rgba(244, 63, 94, 0.3)', text: '#fda4af' }
     },
     orange: {
-      bg: 'bg-orange-500',
-      light: 'bg-orange-100 dark:bg-orange-950',
-      border: 'border-orange-300 dark:border-orange-800',
-      text: 'text-orange-800 dark:text-orange-300'
+      bar: '#f97316',
+      light: { bg: '#fff7ed', border: '#fdba74', text: '#9a3412' },
+      dark: { bg: 'rgba(249, 115, 22, 0.15)', border: 'rgba(249, 115, 22, 0.3)', text: '#fdba74' }
     },
     gray: {
-      bg: 'bg-zinc-500',
-      light: 'bg-zinc-100 dark:bg-zinc-900',
-      border: 'border-zinc-300 dark:border-zinc-700',
-      text: 'text-zinc-800 dark:text-zinc-300'
+      bar: '#71717a',
+      light: { bg: '#f4f4f5', border: '#d4d4d8', text: '#3f3f46' },
+      dark: { bg: 'rgba(113, 113, 122, 0.15)', border: 'rgba(113, 113, 122, 0.3)', text: '#a1a1aa' }
     },
   }
 
-  const config = colorConfig[color] || colorConfig.gray
+  const palette = colorStyles[color] || colorStyles.gray
+  const theme = isDark ? palette.dark : palette.light
 
   return (
-    <div className={`p-4 rounded-lg ${config.light} border ${config.border} transition-all duration-200`}>
+    <div
+      className="p-4 rounded-lg border transition-all duration-200"
+      style={{ backgroundColor: theme.bg, borderColor: theme.border }}
+    >
       <div className="flex items-center justify-between mb-3">
-        <span className={`text-sm font-semibold ${config.text}`}>{category}</span>
-        <span className={`text-lg font-bold ${config.text}`}>{count.toLocaleString()}</span>
+        <span className="text-sm font-semibold" style={{ color: theme.text }}>{category}</span>
+        <span className="text-lg font-bold" style={{ color: theme.text }}>{count.toLocaleString()}</span>
       </div>
-      <div className="h-2 bg-white/50 dark:bg-black/30 rounded-full overflow-hidden">
+      <div
+        className="h-2 rounded-full overflow-hidden"
+        style={{ backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)' }}
+      >
         <div
-          className={`h-full rounded-full ${config.bg} transition-all duration-700 ease-out`}
-          style={{ width: `${percentage}%` }}
+          className="h-full rounded-full transition-all duration-700 ease-out"
+          style={{ width: `${percentage}%`, backgroundColor: palette.bar }}
         />
       </div>
-      <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">{percentage.toFixed(1)}% do total</p>
+      <p className="text-xs mt-2" style={{ color: isDark ? '#a1a1aa' : '#71717a' }}>
+        {percentage.toFixed(1)}% do total
+      </p>
     </div>
   )
 }
@@ -276,6 +279,8 @@ export default function Dashboard() {
   const [error, setError] = useState(null)
   const [selectedNews, setSelectedNews] = useState(null)
   const [showModal, setShowModal] = useState(false)
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
 
   const loadData = useCallback(async () => {
     try {
@@ -470,6 +475,7 @@ export default function Dashboard() {
                       count={cat.count}
                       total={totalByCategory}
                       color={cat.color}
+                      isDark={isDark}
                     />
                   ))
                 ) : (

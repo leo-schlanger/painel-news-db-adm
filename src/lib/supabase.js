@@ -100,71 +100,59 @@ export async function fetchSources() {
 
 // Fetch statistics
 export async function fetchStats() {
-  // Total news count
-  const { count: totalNews } = await supabase
-    .from('news')
-    .select('*', { count: 'exact', head: true })
+  // Get all predefined categories
+  const categories = getCategories()
 
-  // News last 24h
-  const yesterday = new Date()
-  yesterday.setDate(yesterday.getDate() - 1)
-  const { count: newsLast24h } = await supabase
-    .from('news')
-    .select('*', { count: 'exact', head: true })
-    .gte('fetched_at', yesterday.toISOString())
+  // Run all count queries in parallel for better performance
+  const [
+    totalNewsResult,
+    newsLast24hResult,
+    highPriorityResult,
+    activeSourcesResult,
+    totalSourcesResult,
+    ...categoryResults
+  ] = await Promise.all([
+    // Total news count
+    supabase.from('news').select('*', { count: 'exact', head: true }),
 
-  // News by category - get actual categories from DB
-  const { data: categoryData, error: categoryError } = await supabase
-    .from('news')
-    .select('category')
+    // News last 24h
+    supabase.from('news').select('*', { count: 'exact', head: true })
+      .gte('fetched_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
 
-  if (categoryError) {
-    console.error('Error fetching categories:', categoryError)
-  }
+    // High priority news (score >= 2)
+    supabase.from('news').select('*', { count: 'exact', head: true })
+      .gte('priority_score', 2),
 
+    // Active sources
+    supabase.from('sources').select('*', { count: 'exact', head: true })
+      .eq('is_active', true),
+
+    // Total sources
+    supabase.from('sources').select('*', { count: 'exact', head: true }),
+
+    // Count for each category (using ilike for case-insensitive match)
+    ...categories.map(cat =>
+      supabase.from('news').select('*', { count: 'exact', head: true })
+        .ilike('category', cat.value)
+    )
+  ])
+
+  // Build byCategory object from results
   const byCategory = {}
-  const predefinedCategories = getCategories().map(c => c.value)
-
-  categoryData?.forEach(item => {
-    const cat = item.category
-    if (cat) {
-      // Normalize category (lowercase, trim)
-      const normalizedCat = cat.toString().toLowerCase().trim()
-      byCategory[normalizedCat] = (byCategory[normalizedCat] || 0) + 1
-    } else {
-      // Count null/empty categories as 'uncategorized'
-      byCategory['uncategorized'] = (byCategory['uncategorized'] || 0) + 1
+  categories.forEach((cat, index) => {
+    const count = categoryResults[index]?.count || 0
+    if (count > 0) {
+      byCategory[cat.value] = count
     }
   })
 
-  // Debug: log actual categories found
-  console.log('Categories found in database:', Object.keys(byCategory))
-  console.log('Category counts:', byCategory)
-
-  // High priority news (score >= 2)
-  const { count: highPriority } = await supabase
-    .from('news')
-    .select('*', { count: 'exact', head: true })
-    .gte('priority_score', 2)
-
-  // Active sources
-  const { count: activeSources } = await supabase
-    .from('sources')
-    .select('*', { count: 'exact', head: true })
-    .eq('is_active', true)
-
-  // Total sources
-  const { count: totalSources } = await supabase
-    .from('sources')
-    .select('*', { count: 'exact', head: true })
-
   return {
-    totalNews,
-    newsLast24h,
+    totalNews: totalNewsResult.count,
+    newsLast24h: newsLast24hResult.count,
     byCategory,
-    highPriority,
-    activeSources,
-    totalSources
+    highPriority: highPriorityResult.count,
+    activeSources: activeSourcesResult.count,
+    totalSources: totalSourcesResult.count
   }
 }
 
