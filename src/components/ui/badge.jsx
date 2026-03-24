@@ -2,24 +2,89 @@ import * as React from "react"
 import { cva } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
+/**
+ * Badge Component - 2026 Design System
+ *
+ * Color system based on:
+ * - WCAG 4.5:1 minimum contrast ratio
+ * - Semantic colors for status indicators
+ * - Comfortable contrast (not too stark)
+ *
+ * Light mode: Soft pastel backgrounds (100) + dark text (800)
+ * Dark mode: Deep backgrounds (950) + light text (300)
+ */
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all duration-200 ring-1 ring-inset",
+  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border transition-colors",
   {
     variants: {
       variant: {
-        default: "bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-500/30",
-        secondary: "bg-gray-50 text-gray-700 ring-gray-500/20 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-500/30",
-        destructive: "bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-900/30 dark:text-red-300 dark:ring-red-500/30",
-        outline: "bg-transparent text-gray-700 ring-gray-300 dark:text-gray-300 dark:ring-gray-600",
-        success: "bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-500/30",
-        warning: "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-500/30",
-        // Category variants with modern colors
-        politics_pt: "bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-500/30",
-        politics_br: "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-500/30",
-        politics_world: "bg-sky-50 text-sky-700 ring-sky-600/20 dark:bg-sky-900/30 dark:text-sky-300 dark:ring-sky-500/30",
-        controversies: "bg-pink-50 text-pink-700 ring-pink-600/20 dark:bg-pink-900/30 dark:text-pink-300 dark:ring-pink-500/30",
-        conflicts: "bg-rose-50 text-rose-700 ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-300 dark:ring-rose-500/30",
-        disasters: "bg-orange-50 text-orange-700 ring-orange-600/20 dark:bg-orange-900/30 dark:text-orange-300 dark:ring-orange-500/30",
+        // Neutral variants
+        default: [
+          "bg-zinc-100 text-zinc-800 border-zinc-300",
+          "dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-600"
+        ].join(" "),
+
+        secondary: [
+          "bg-zinc-100 text-zinc-600 border-zinc-200",
+          "dark:bg-zinc-800/50 dark:text-zinc-400 dark:border-zinc-700"
+        ].join(" "),
+
+        outline: [
+          "bg-transparent text-zinc-700 border-zinc-300",
+          "dark:text-zinc-300 dark:border-zinc-600"
+        ].join(" "),
+
+        // Status variants (semantic)
+        destructive: [
+          "bg-rose-100 text-rose-800 border-rose-300",
+          "dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800"
+        ].join(" "),
+
+        success: [
+          "bg-emerald-100 text-emerald-800 border-emerald-300",
+          "dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
+        ].join(" "),
+
+        warning: [
+          "bg-amber-100 text-amber-800 border-amber-300",
+          "dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800"
+        ].join(" "),
+
+        info: [
+          "bg-sky-100 text-sky-800 border-sky-300",
+          "dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800"
+        ].join(" "),
+
+        // Category variants for news dashboard
+        politics_pt: [
+          "bg-emerald-100 text-emerald-800 border-emerald-300",
+          "dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
+        ].join(" "),
+
+        politics_br: [
+          "bg-amber-100 text-amber-800 border-amber-300",
+          "dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800"
+        ].join(" "),
+
+        politics_world: [
+          "bg-sky-100 text-sky-800 border-sky-300",
+          "dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800"
+        ].join(" "),
+
+        controversies: [
+          "bg-fuchsia-100 text-fuchsia-800 border-fuchsia-300",
+          "dark:bg-fuchsia-950 dark:text-fuchsia-300 dark:border-fuchsia-800"
+        ].join(" "),
+
+        conflicts: [
+          "bg-rose-100 text-rose-800 border-rose-300",
+          "dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800"
+        ].join(" "),
+
+        disasters: [
+          "bg-orange-100 text-orange-800 border-orange-300",
+          "dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800"
+        ].join(" "),
       },
     },
     defaultVariants: {

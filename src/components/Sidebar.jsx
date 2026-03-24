@@ -83,7 +83,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
                 collapsed && 'justify-center',
                 isActive
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-sm'
                   : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--sidebar-hover))]'
               )
             }
@@ -106,7 +106,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
                 collapsed && 'justify-center',
                 isActive
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-sm'
                   : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--sidebar-hover))]'
               )
             }
@@ -140,7 +140,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           onClick={handleLogout}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
-            'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20',
+            'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950',
             collapsed && 'justify-center'
           )}
           title={collapsed ? 'Sair' : undefined}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { fetchStats, fetchLogs, getCategories } from '../lib/supabase'
+import { fetchStats, fetchLogs, getCategoryInfo } from '../lib/supabase'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import { toast } from '@/hooks/useToast'
@@ -107,7 +107,16 @@ export default function Stats() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const categories = getCategories()
+  // Build categories from actual database data
+  const categoriesFromData = Object.entries(stats?.byCategory || {}).map(([value, count]) => {
+    const info = getCategoryInfo(value)
+    return {
+      value,
+      label: info?.label || value,
+      color: info?.color || 'gray',
+      count
+    }
+  }).sort((a, b) => b.count - a.count)
 
   const loadData = useCallback(async () => {
     try {
@@ -260,18 +269,17 @@ export default function Stats() {
                 <TableRowSkeleton cols={3} />
                 <TableRowSkeleton cols={3} />
               </>
-            ) : (
-              categories.map(cat => {
-                const count = stats?.byCategory?.[cat.value] || 0
+            ) : categoriesFromData.length > 0 ? (
+              categoriesFromData.map(cat => {
                 const total = stats?.totalNews || 1
-                const percentage = ((count / total) * 100).toFixed(1)
+                const percentage = ((cat.count / total) * 100).toFixed(1)
                 return (
                   <TableRow key={cat.value}>
                     <TableCell>
                       <Badge variant={cat.value}>{cat.label}</Badge>
                     </TableCell>
                     <TableCell className="text-right font-semibold text-[hsl(var(--foreground))]">
-                      {count.toLocaleString()}
+                      {cat.count.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right">
                       <span className="text-[hsl(var(--muted-foreground))]">{percentage}%</span>
@@ -279,6 +287,12 @@ export default function Stats() {
                   </TableRow>
                 )
               })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center text-[hsl(var(--muted-foreground))] py-8">
+                  Nenhuma categoria encontrada
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>

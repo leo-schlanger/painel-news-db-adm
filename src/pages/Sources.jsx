@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { fetchSources, getCategories } from '../lib/supabase'
+import { fetchSources, getCategories, getCategoryInfo } from '../lib/supabase'
 import { useDebounce } from '../hooks/useDebounce'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
@@ -92,7 +92,8 @@ export default function Sources() {
   }, [loadSources])
 
   const getCategoryLabel = (value) => {
-    return categories.find(c => c.value === value)?.label || value
+    const info = getCategoryInfo(value)
+    return info?.label || value
   }
 
   const filteredSources = sources.filter(source => {
@@ -215,7 +216,7 @@ export default function Sources() {
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-semibold text-[hsl(var(--foreground))] truncate">{source.name}</h3>
-                    <Badge variant={source.category} className="mt-1.5">
+                    <Badge variant={getCategoryInfo(source.category)?.value || 'default'} className="mt-1.5">
                       {getCategoryLabel(source.category)}
                     </Badge>
                   </div>

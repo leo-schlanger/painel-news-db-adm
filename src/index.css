@@ -1,100 +1,204 @@
 @import "tailwindcss";
 
+/*
+ * Color System 2026
+ * Based on: https://ui.shadcn.com/docs/theming
+ * Trends: https://updivision.com/blog/post/ui-color-trends-to-watch-in-2026
+ * Dark mode: https://www.tech-rz.com/blog/dark-mode-design-best-practices-in-2026/
+ *
+ * Using Zinc-based neutrals for a modern, comfortable feel
+ * WCAG 4.5:1 minimum contrast ratio for all text
+ */
+
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
+  /* Light Mode - Warm, elevated neutrals */
+  --background: 0 0% 98%;           /* #fafafa - off-white, easier on eyes */
+  --foreground: 240 10% 3.9%;       /* #09090b - near black for high contrast */
+
+  --card: 0 0% 100%;                /* #ffffff - pure white for elevation */
+  --card-foreground: 240 10% 3.9%;
+
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
+  --popover-foreground: 240 10% 3.9%;
+
+  --primary: 221 83% 53%;           /* #3b82f6 - vibrant blue */
   --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
-  --radius: 0.5rem;
-  --sidebar-bg: 0 0% 98%;
-  --sidebar-border: 214.3 31.8% 91.4%;
-  --sidebar-hover: 210 40% 96.1%;
+
+  --secondary: 240 4.8% 95.9%;      /* #f4f4f5 - subtle gray */
+  --secondary-foreground: 240 5.9% 10%;
+
+  --muted: 240 4.8% 95.9%;          /* #f4f4f5 */
+  --muted-foreground: 240 3.8% 46.1%; /* #71717a - readable gray */
+
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+
+  --destructive: 0 84% 60%;         /* #ef4444 - clear red */
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 240 5.9% 90%;           /* #e4e4e7 - subtle border */
+  --input: 240 5.9% 90%;
+  --ring: 221 83% 53%;
+
+  --radius: 0.625rem;
+
+  /* Sidebar */
+  --sidebar-bg: 0 0% 100%;
+  --sidebar-border: 240 5.9% 90%;
+  --sidebar-hover: 240 4.8% 95.9%;
+
+  /* Chart colors */
+  --chart-1: 221 83% 53%;
+  --chart-2: 160 84% 39%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
 }
 
 .dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 6%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 6%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 50.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 48%;
-  --sidebar-bg: 222.2 84% 6%;
-  --sidebar-border: 217.2 32.6% 17.5%;
-  --sidebar-hover: 217.2 32.6% 20%;
+  /* Dark Mode - Material Design inspired, #121212 base with blue tint */
+  --background: 240 10% 3.9%;       /* #09090b - deep dark, not pure black */
+  --foreground: 0 0% 98%;           /* #fafafa - soft white */
+
+  --card: 240 10% 5.9%;             /* #0f0f11 - elevated surface */
+  --card-foreground: 0 0% 98%;
+
+  --popover: 240 10% 5.9%;
+  --popover-foreground: 0 0% 98%;
+
+  --primary: 217 91% 60%;           /* #60a5fa - lighter blue for dark bg */
+  --primary-foreground: 240 10% 3.9%;
+
+  --secondary: 240 3.7% 15.9%;      /* #27272a - elevated gray */
+  --secondary-foreground: 0 0% 98%;
+
+  --muted: 240 3.7% 15.9%;          /* #27272a */
+  --muted-foreground: 240 5% 64.9%; /* #a1a1aa - readable muted text */
+
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+
+  --destructive: 0 72% 51%;         /* #dc2626 - visible red */
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 240 3.7% 15.9%;         /* #27272a - subtle dark border */
+  --input: 240 3.7% 15.9%;
+  --ring: 217 91% 60%;
+
+  /* Sidebar */
+  --sidebar-bg: 240 10% 5.9%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-hover: 240 3.7% 20%;
+
+  /* Chart colors - brighter for dark mode */
+  --chart-1: 217 91% 60%;
+  --chart-2: 160 84% 45%;
+  --chart-3: 30 80% 60%;
+  --chart-4: 280 65% 65%;
+  --chart-5: 340 75% 60%;
 }
 
+/* Base styles */
 body {
-  @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))] antialiased transition-colors duration-200;
+  @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))] antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Button styles */
 .btn-primary {
-  @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  @apply bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90 text-[hsl(var(--primary-foreground))] font-medium py-2 px-4 rounded-lg transition-colors duration-200;
 }
 
 .btn-secondary {
-  @apply bg-[hsl(var(--muted))] hover:bg-[hsl(var(--muted))]/80 text-[hsl(var(--foreground))] font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  @apply bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--secondary))]/80 text-[hsl(var(--secondary-foreground))] font-medium py-2 px-4 rounded-lg transition-colors duration-200;
 }
 
+/* Card styles */
 .card {
   @apply bg-[hsl(var(--card))] rounded-xl shadow-sm border border-[hsl(var(--border))];
 }
 
+/* Input styles */
 .input {
-  @apply w-full px-4 py-2 border border-[hsl(var(--border))] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200;
+  @apply w-full px-4 py-2 border border-[hsl(var(--border))] rounded-lg;
+  @apply focus:ring-2 focus:ring-[hsl(var(--ring))] focus:border-transparent outline-none;
   @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
+  @apply placeholder:text-[hsl(var(--muted-foreground))];
+  @apply transition-all duration-200;
 }
 
+/* Select styles */
 .select {
-  @apply w-full px-4 py-2 border border-[hsl(var(--border))] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200;
+  @apply w-full px-4 py-2 border border-[hsl(var(--border))] rounded-lg;
+  @apply focus:ring-2 focus:ring-[hsl(var(--ring))] focus:border-transparent outline-none;
   @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
+  @apply transition-all duration-200;
 }
 
+/*
+ * Badge System - Semantic Colors with High Contrast
+ * Following 2026 best practices for status indicators
+ * Min contrast ratio: 4.5:1 for WCAG AA compliance
+ */
 .badge {
-  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  @apply border transition-colors duration-200;
 }
 
-.badge-politics_pt { @apply bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300; }
-.badge-politics_br { @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300; }
-.badge-politics_world { @apply bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300; }
-.badge-controversies { @apply bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300; }
-.badge-conflicts { @apply bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300; }
-.badge-disasters { @apply bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300; }
+/* Default badge */
+.badge-default {
+  @apply bg-zinc-100 text-zinc-800 border-zinc-200;
+  @apply dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700;
+}
 
+/* Category badges with semantic colors */
+.badge-politics_pt {
+  @apply bg-emerald-100 text-emerald-800 border-emerald-200;
+  @apply dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800;
+}
+
+.badge-politics_br {
+  @apply bg-amber-100 text-amber-800 border-amber-200;
+  @apply dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800;
+}
+
+.badge-politics_world {
+  @apply bg-sky-100 text-sky-800 border-sky-200;
+  @apply dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800;
+}
+
+.badge-controversies {
+  @apply bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200;
+  @apply dark:bg-fuchsia-950 dark:text-fuchsia-300 dark:border-fuchsia-800;
+}
+
+.badge-conflicts {
+  @apply bg-rose-100 text-rose-800 border-rose-200;
+  @apply dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800;
+}
+
+.badge-disasters {
+  @apply bg-orange-100 text-orange-800 border-orange-200;
+  @apply dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800;
+}
+
+/* Table styles */
 .table-row {
-  @apply border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] transition-colors duration-150;
+  @apply border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))]/50 transition-colors duration-150;
 }
 
-.priority-high { @apply text-red-600 dark:text-red-400 font-semibold; }
-.priority-medium { @apply text-orange-500 dark:text-orange-400 font-medium; }
-.priority-low { @apply text-[hsl(var(--muted-foreground))]; }
+/* Priority indicators */
+.priority-high {
+  @apply text-rose-600 dark:text-rose-400 font-semibold;
+}
+
+.priority-medium {
+  @apply text-amber-600 dark:text-amber-400 font-medium;
+}
+
+.priority-low {
+  @apply text-[hsl(var(--muted-foreground))];
+}
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
@@ -104,11 +208,12 @@ body {
 
 ::-webkit-scrollbar-track {
   background: hsl(var(--muted));
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 9999px;
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -223,7 +328,7 @@ body {
 
 /* Progress bar */
 .progress-bar {
-  @apply fixed top-0 left-0 right-0 h-1 bg-blue-600 z-[100];
+  @apply fixed top-0 left-0 right-0 h-1 bg-[hsl(var(--primary))] z-[100];
   transform-origin: left;
 }
 
@@ -234,10 +339,32 @@ body {
 
 /* Card hover effects */
 .card-hover {
-  @apply transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
+  @apply transition-all duration-200 hover:shadow-md;
+  @apply hover:border-[hsl(var(--border))]/80;
 }
 
 /* Focus visible styles */
 .focus-ring {
   @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))];
+}
+
+/* Status colors for badges */
+.status-success {
+  @apply bg-emerald-100 text-emerald-800 border-emerald-200;
+  @apply dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800;
+}
+
+.status-error {
+  @apply bg-rose-100 text-rose-800 border-rose-200;
+  @apply dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800;
+}
+
+.status-warning {
+  @apply bg-amber-100 text-amber-800 border-amber-200;
+  @apply dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800;
+}
+
+.status-info {
+  @apply bg-sky-100 text-sky-800 border-sky-200;
+  @apply dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800;
 }

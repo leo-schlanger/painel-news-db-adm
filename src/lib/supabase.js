@@ -113,15 +113,33 @@ export async function fetchStats() {
     .select('*', { count: 'exact', head: true })
     .gte('fetched_at', yesterday.toISOString())
 
-  // News by category
-  const { data: categoryData } = await supabase
+  // News by category - get actual categories from DB
+  const { data: categoryData, error: categoryError } = await supabase
     .from('news')
     .select('category')
 
+  if (categoryError) {
+    console.error('Error fetching categories:', categoryError)
+  }
+
   const byCategory = {}
+  const predefinedCategories = getCategories().map(c => c.value)
+
   categoryData?.forEach(item => {
-    byCategory[item.category] = (byCategory[item.category] || 0) + 1
+    const cat = item.category
+    if (cat) {
+      // Normalize category (lowercase, trim)
+      const normalizedCat = cat.toString().toLowerCase().trim()
+      byCategory[normalizedCat] = (byCategory[normalizedCat] || 0) + 1
+    } else {
+      // Count null/empty categories as 'uncategorized'
+      byCategory['uncategorized'] = (byCategory['uncategorized'] || 0) + 1
+    }
   })
+
+  // Debug: log actual categories found
+  console.log('Categories found in database:', Object.keys(byCategory))
+  console.log('Category counts:', byCategory)
 
   // High priority news (score >= 2)
   const { count: highPriority } = await supabase
@@ -367,14 +385,68 @@ export async function fetchLogs(limit = 50) {
   return data
 }
 
-// Get categories list
+// Get categories list with multiple possible values
 export function getCategories() {
   return [
-    { value: 'politics_pt', label: 'Politica PT', color: 'green' },
-    { value: 'politics_br', label: 'Politica BR', color: 'yellow' },
-    { value: 'politics_world', label: 'Politica Mundial', color: 'blue' },
-    { value: 'controversies', label: 'Controversias', color: 'pink' },
-    { value: 'conflicts', label: 'Conflitos', color: 'red' },
-    { value: 'disasters', label: 'Desastres', color: 'orange' }
+    { value: 'politics_pt', label: 'Politica PT', color: 'green', aliases: ['politica_pt', 'politica pt', 'politics pt'] },
+    { value: 'politics_br', label: 'Politica BR', color: 'yellow', aliases: ['politica_br', 'politica br', 'politics br', 'brazil', 'brasil'] },
+    { value: 'politics_world', label: 'Politica Mundial', color: 'blue', aliases: ['politica_world', 'politica mundial', 'world', 'internacional', 'international'] },
+    { value: 'controversies', label: 'Controversias', color: 'pink', aliases: ['controversia', 'controversy', 'polemicas', 'polemica'] },
+    { value: 'conflicts', label: 'Conflitos', color: 'red', aliases: ['conflict', 'conflito', 'guerra', 'war'] },
+    { value: 'disasters', label: 'Desastres', color: 'orange', aliases: ['disaster', 'desastre', 'catastrofe', 'catastrophe'] }
   ]
+}
+
+// Get category info by value (checks aliases too)
+export function getCategoryInfo(categoryValue) {
+  if (!categoryValue) return null
+
+  const normalizedValue = categoryValue.toString().toLowerCase().trim()
+  const categories = getCategories()
+
+  // First try exact match
+  let found = categories.find(c => c.value === normalizedValue)
+  if (found) return found
+
+  // Then try aliases
+  found = categories.find(c =>
+    c.aliases?.some(alias => alias.toLowerCase() === normalizedValue)
+  )
+  if (found) return found
+
+  // Return a default for unknown categories
+  return {
+    value: normalizedValue,
+    label: categoryValue,
+    color: 'gray',
+    isUnknown: true
+  }
+}
+
+// Get all categories from database with counts
+export async function fetchCategoriesFromDB() {
+  const { data, error } = await supabase
+    .from('news')
+    .select('category')
+
+  if (error) {
+    console.error('Error fetching categories:', error)
+    return []
+  }
+
+  // Count categories
+  const counts = {}
+  data?.forEach(item => {
+    const cat = item.category || 'uncategorized'
+    counts[cat] = (counts[cat] || 0) + 1
+  })
+
+  // Convert to array with category info
+  return Object.entries(counts)
+    .map(([value, count]) => ({
+      ...getCategoryInfo(value),
+      count,
+      originalValue: value
+    }))
+    .sort((a, b) => b.count - a.count)
 }

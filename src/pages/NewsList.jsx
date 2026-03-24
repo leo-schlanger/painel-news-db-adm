@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { fetchNews, fetchSources, getCategories } from '../lib/supabase'
+import { fetchNews, fetchSources, getCategories, getCategoryInfo } from '../lib/supabase'
 import { useDebounce } from '../hooks/useDebounce'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
@@ -61,8 +61,8 @@ function NewsRowSkeleton() {
 }
 
 function NewsRow({ news, isSelected, onSelect, onViewDetails }) {
-  const categories = getCategories()
-  const categoryLabel = categories.find(c => c.value === news.category)?.label || news.category
+  const categoryInfo = getCategoryInfo(news.category)
+  const categoryLabel = categoryInfo?.label || news.category
   const { isFavorite, toggleFavorite } = useFavorites()
 
   const getPriorityIcon = (score) => {
@@ -109,7 +109,7 @@ function NewsRow({ news, isSelected, onSelect, onViewDetails }) {
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant={news.category}>
+        <Badge variant={categoryInfo?.value || 'default'}>
           {categoryLabel}
         </Badge>
       </TableCell>

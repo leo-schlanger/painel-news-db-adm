@@ -3,22 +3,56 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
+/**
+ * Button Component - 2026 Design System
+ * Using CSS variables for theme consistency
+ */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
+  [
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium",
+    "transition-all duration-200",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))]",
+    "disabled:pointer-events-none disabled:opacity-50",
+    "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+    "active:scale-[0.98]"
+  ].join(" "),
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md shadow-blue-500/25 hover:from-blue-700 hover:to-blue-800 hover:shadow-lg hover:shadow-blue-500/30",
-        destructive: "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md shadow-red-500/25 hover:from-red-700 hover:to-red-800",
-        outline: "border border-[hsl(var(--border))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] shadow-sm",
-        secondary: "bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]/80 shadow-sm",
-        ghost: "hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]",
-        link: "text-blue-600 dark:text-blue-400 underline-offset-4 hover:underline",
+        default: [
+          "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]",
+          "shadow-sm hover:bg-[hsl(var(--primary))]/90",
+        ].join(" "),
+
+        destructive: [
+          "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))]",
+          "shadow-sm hover:bg-[hsl(var(--destructive))]/90",
+        ].join(" "),
+
+        outline: [
+          "border border-[hsl(var(--border))] bg-[hsl(var(--background))]",
+          "text-[hsl(var(--foreground))] shadow-sm",
+          "hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))]",
+        ].join(" "),
+
+        secondary: [
+          "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]",
+          "shadow-sm hover:bg-[hsl(var(--secondary))]/80",
+        ].join(" "),
+
+        ghost: [
+          "text-[hsl(var(--foreground))]",
+          "hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))]",
+        ].join(" "),
+
+        link: [
+          "text-[hsl(var(--primary))] underline-offset-4 hover:underline",
+        ].join(" "),
       },
       size: {
-        default: "h-10 px-5 py-2",
-        sm: "h-9 rounded-lg px-4 text-xs",
-        lg: "h-12 rounded-xl px-8 text-base",
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3 text-xs",
+        lg: "h-11 rounded-lg px-8",
         icon: "h-10 w-10",
       },
     },

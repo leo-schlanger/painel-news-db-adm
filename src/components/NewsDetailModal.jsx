@@ -6,7 +6,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Badge, Button } from '@/components/ui'
-import { getCategories } from '@/lib/supabase'
+import { getCategoryInfo } from '@/lib/supabase'
 import { useFavorites } from '@/context/FavoritesContext'
 import {
   ExternalLink,
@@ -23,8 +23,7 @@ import {
 import { toast } from '@/hooks/useToast'
 
 export default function NewsDetailModal({ news, open, onOpenChange }) {
-  const categories = getCategories()
-  const categoryData = categories.find(c => c.value === news?.category)
+  const categoryInfo = getCategoryInfo(news?.category)
   const { isFavorite, toggleFavorite } = useFavorites()
 
   const formatDate = (dateString) => {
@@ -81,8 +80,8 @@ export default function NewsDetailModal({ news, open, onOpenChange }) {
             </DialogTitle>
           </div>
           <div className="flex flex-wrap items-center gap-2 pt-2">
-            <Badge variant={news.category}>
-              {categoryData?.label || news.category}
+            <Badge variant={categoryInfo?.value || 'default'}>
+              {categoryInfo?.label || news.category}
             </Badge>
             <div className={`flex items-center gap-1.5 text-sm font-medium ${priority.color}`}>
               {PriorityIcon && <PriorityIcon className="w-4 h-4" />}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useFavorites } from '@/context/FavoritesContext'
-import { getCategories } from '@/lib/supabase'
+import { getCategoryInfo } from '@/lib/supabase'
 import { exportToCSV, generateExportFilename } from '@/lib/export'
 import { toast } from '@/hooks/useToast'
 import NewsDetailModal from '@/components/NewsDetailModal'
@@ -32,8 +32,6 @@ export default function Favorites() {
   const [search, setSearch] = useState('')
   const [selectedNews, setSelectedNews] = useState(null)
   const [showModal, setShowModal] = useState(false)
-
-  const categories = getCategories()
 
   const filteredFavorites = favorites.filter(news =>
     !search ||
@@ -93,7 +91,8 @@ export default function Favorites() {
   }
 
   const getCategoryLabel = (value) => {
-    return categories.find(c => c.value === value)?.label || value
+    const info = getCategoryInfo(value)
+    return info?.label || value
   }
 
   const getPriorityIcon = (score) => {
@@ -214,7 +213,7 @@ export default function Favorites() {
                     </button>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={news.category}>
+                    <Badge variant={getCategoryInfo(news.category)?.value || 'default'}>
                       {getCategoryLabel(news.category)}
                     </Badge>
                   </TableCell>

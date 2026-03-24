@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchStatsWithTrends, fetchNews, fetchNewsOverTime, getCategories } from '../lib/supabase'
+import { fetchStatsWithTrends, fetchNews, fetchNewsOverTime, getCategoryInfo } from '../lib/supabase'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import { useSettings } from '@/context/SettingsContext'
@@ -130,24 +130,61 @@ function StatCardSkeleton() {
 function CategoryCard({ category, count, total, color }) {
   const percentage = total > 0 ? (count / total) * 100 : 0
 
+  // Semantic color system matching badge colors
   const colorConfig = {
-    green: { bg: 'bg-emerald-500', light: 'bg-emerald-50 dark:bg-emerald-900/30', ring: 'ring-emerald-500/20' },
-    yellow: { bg: 'bg-amber-500', light: 'bg-amber-50 dark:bg-amber-900/30', ring: 'ring-amber-500/20' },
-    blue: { bg: 'bg-sky-500', light: 'bg-sky-50 dark:bg-sky-900/30', ring: 'ring-sky-500/20' },
-    pink: { bg: 'bg-pink-500', light: 'bg-pink-50 dark:bg-pink-900/30', ring: 'ring-pink-500/20' },
-    red: { bg: 'bg-rose-500', light: 'bg-rose-50 dark:bg-rose-900/30', ring: 'ring-rose-500/20' },
-    orange: { bg: 'bg-orange-500', light: 'bg-orange-50 dark:bg-orange-900/30', ring: 'ring-orange-500/20' },
+    green: {
+      bg: 'bg-emerald-500',
+      light: 'bg-emerald-100 dark:bg-emerald-950',
+      border: 'border-emerald-300 dark:border-emerald-800',
+      text: 'text-emerald-800 dark:text-emerald-300'
+    },
+    yellow: {
+      bg: 'bg-amber-500',
+      light: 'bg-amber-100 dark:bg-amber-950',
+      border: 'border-amber-300 dark:border-amber-800',
+      text: 'text-amber-800 dark:text-amber-300'
+    },
+    blue: {
+      bg: 'bg-sky-500',
+      light: 'bg-sky-100 dark:bg-sky-950',
+      border: 'border-sky-300 dark:border-sky-800',
+      text: 'text-sky-800 dark:text-sky-300'
+    },
+    pink: {
+      bg: 'bg-fuchsia-500',
+      light: 'bg-fuchsia-100 dark:bg-fuchsia-950',
+      border: 'border-fuchsia-300 dark:border-fuchsia-800',
+      text: 'text-fuchsia-800 dark:text-fuchsia-300'
+    },
+    red: {
+      bg: 'bg-rose-500',
+      light: 'bg-rose-100 dark:bg-rose-950',
+      border: 'border-rose-300 dark:border-rose-800',
+      text: 'text-rose-800 dark:text-rose-300'
+    },
+    orange: {
+      bg: 'bg-orange-500',
+      light: 'bg-orange-100 dark:bg-orange-950',
+      border: 'border-orange-300 dark:border-orange-800',
+      text: 'text-orange-800 dark:text-orange-300'
+    },
+    gray: {
+      bg: 'bg-zinc-500',
+      light: 'bg-zinc-100 dark:bg-zinc-900',
+      border: 'border-zinc-300 dark:border-zinc-700',
+      text: 'text-zinc-800 dark:text-zinc-300'
+    },
   }
 
-  const config = colorConfig[color] || colorConfig.blue
+  const config = colorConfig[color] || colorConfig.gray
 
   return (
-    <div className={`p-4 rounded-xl ${config.light} ring-1 ${config.ring} hover:ring-2 transition-all duration-200`}>
+    <div className={`p-4 rounded-lg ${config.light} border ${config.border} transition-all duration-200`}>
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-semibold text-[hsl(var(--foreground))]">{category}</span>
-        <span className="text-lg font-bold text-[hsl(var(--foreground))]">{count.toLocaleString()}</span>
+        <span className={`text-sm font-semibold ${config.text}`}>{category}</span>
+        <span className={`text-lg font-bold ${config.text}`}>{count.toLocaleString()}</span>
       </div>
-      <div className="h-2 bg-white/60 dark:bg-black/20 rounded-full overflow-hidden">
+      <div className="h-2 bg-white/50 dark:bg-black/30 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full ${config.bg} transition-all duration-700 ease-out`}
           style={{ width: `${percentage}%` }}
@@ -159,9 +196,8 @@ function CategoryCard({ category, count, total, color }) {
 }
 
 function RecentNewsItem({ news, onViewDetails }) {
-  const categories = getCategories()
-  const categoryData = categories.find(c => c.value === news.category)
-  const categoryLabel = categoryData?.label || news.category
+  const categoryInfo = getCategoryInfo(news.category)
+  const categoryLabel = categoryInfo?.label || news.category
   const { isFavorite, toggleFavorite } = useFavorites()
 
   const getPriorityIcon = (score) => {
@@ -183,7 +219,7 @@ function RecentNewsItem({ news, onViewDetails }) {
             </p>
           </button>
           <div className="flex items-center flex-wrap gap-2 mt-2">
-            <Badge variant={news.category}>
+            <Badge variant={categoryInfo?.value || 'default'}>
               {categoryLabel}
             </Badge>
             <div className="flex items-center gap-1 text-xs text-[hsl(var(--muted-foreground))]">
@@ -299,8 +335,19 @@ export default function Dashboard() {
     )
   }
 
-  const categories = getCategories()
+  // Get categories from actual database data
   const totalByCategory = Object.values(stats?.byCategory || {}).reduce((a, b) => a + b, 0)
+
+  // Build category list from actual data, using getCategoryInfo to get labels and colors
+  const categoriesFromData = Object.entries(stats?.byCategory || {}).map(([value, count]) => {
+    const info = getCategoryInfo(value)
+    return {
+      value,
+      label: info?.label || value,
+      color: info?.color || 'gray',
+      count
+    }
+  }).sort((a, b) => b.count - a.count)
 
   return (
     <div className="space-y-8">
@@ -415,15 +462,21 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="space-y-3 max-h-[360px] overflow-y-auto">
-                {categories.map(cat => (
-                  <CategoryCard
-                    key={cat.value}
-                    category={cat.label}
-                    count={stats?.byCategory?.[cat.value] || 0}
-                    total={totalByCategory}
-                    color={cat.color}
-                  />
-                ))}
+                {categoriesFromData.length > 0 ? (
+                  categoriesFromData.map(cat => (
+                    <CategoryCard
+                      key={cat.value}
+                      category={cat.label}
+                      count={cat.count}
+                      total={totalByCategory}
+                      color={cat.color}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-[hsl(var(--muted-foreground))]">
+                    <p>Nenhuma categoria encontrada</p>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
