@@ -43,7 +43,7 @@ const PaginationLink = ({
     size={size}
     className={cn(
       "rounded-lg",
-      isActive && "border-blue-500 bg-blue-50 text-blue-600 hover:bg-blue-100",
+      isActive && "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20",
       className
     )}
     {...props}
@@ -80,7 +80,7 @@ PaginationNext.displayName = "PaginationNext"
 const PaginationEllipsis = ({ className, ...props }) => (
   <span
     aria-hidden
-    className={cn("flex h-9 w-9 items-center justify-center text-gray-400", className)}
+    className={cn("flex h-9 w-9 items-center justify-center text-[hsl(var(--muted-foreground))]", className)}
     {...props}
   >
     <MoreHorizontal className="h-4 w-4" />
@@ -105,10 +105,10 @@ function SimplePagination({
   const end = Math.min(currentPage * perPage, totalCount)
 
   return (
-    <div className={cn("flex items-center justify-between px-4 py-4 border-t border-gray-100 bg-gray-50/30", className)}>
+    <div className={cn("flex items-center justify-between px-4 py-4 border-t border-[hsl(var(--border))] bg-[hsl(var(--muted))]/30", className)}>
       {showInfo && (
-        <p className="text-sm text-gray-500">
-          Mostrando <span className="font-medium text-gray-700">{start}</span> - <span className="font-medium text-gray-700">{end}</span> de <span className="font-medium text-gray-700">{totalCount?.toLocaleString()}</span>
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">
+          Mostrando <span className="font-medium text-[hsl(var(--foreground))]">{start}</span> - <span className="font-medium text-[hsl(var(--foreground))]">{end}</span> de <span className="font-medium text-[hsl(var(--foreground))]">{totalCount?.toLocaleString()}</span>
         </p>
       )}
       <div className="flex items-center gap-1">

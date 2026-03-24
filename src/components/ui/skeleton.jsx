@@ -4,7 +4,7 @@ function Skeleton({ className, ...props }) {
   return (
     <div
       className={cn(
-        "animate-pulse rounded-lg bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%]",
+        "animate-pulse rounded-lg bg-[hsl(var(--muted))]",
         className
       )}
       {...props}

@@ -210,8 +210,8 @@ export default function Sources() {
             <Card key={source.id} className="p-5 group card-hover">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`p-2.5 rounded-xl shadow-sm ${source.is_active ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
-                    <Radio className={`w-5 h-5 ${source.is_active ? 'text-white' : 'text-gray-400'}`} />
+                  <div className={`p-2.5 rounded-xl shadow-sm ${source.is_active ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' : 'bg-[hsl(var(--muted))]'}`}>
+                    <Radio className={`w-5 h-5 ${source.is_active ? 'text-white' : 'text-[hsl(var(--muted-foreground))]'}`} />
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-semibold text-[hsl(var(--foreground))] truncate">{source.name}</h3>
@@ -226,7 +226,7 @@ export default function Sources() {
                     Ativo
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs font-medium">
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] text-xs font-medium">
                     <XCircle className="w-3.5 h-3.5" />
                     Inativo
                   </div>

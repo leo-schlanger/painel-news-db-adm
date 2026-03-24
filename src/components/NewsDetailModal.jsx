@@ -42,7 +42,7 @@ export default function NewsDetailModal({ news, open, onOpenChange }) {
   const getPriorityInfo = (score) => {
     if (score >= 3) return { icon: Flame, color: 'text-red-500', label: 'Alta Prioridade' }
     if (score >= 1) return { icon: Zap, color: 'text-orange-500', label: 'Media Prioridade' }
-    return { icon: null, color: 'text-gray-500', label: 'Baixa Prioridade' }
+    return { icon: null, color: 'text-[hsl(var(--muted-foreground))]', label: 'Baixa Prioridade' }
   }
 
   const handleCopyLink = () => {

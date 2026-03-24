@@ -60,8 +60,7 @@ body {
 }
 
 .btn-secondary {
-  @apply bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
-  @apply dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200;
+  @apply bg-[hsl(var(--muted))] hover:bg-[hsl(var(--muted))]/80 text-[hsl(var(--foreground))] font-medium py-2 px-4 rounded-lg transition-colors duration-200;
 }
 
 .card {
@@ -95,7 +94,7 @@ body {
 
 .priority-high { @apply text-red-600 dark:text-red-400 font-semibold; }
 .priority-medium { @apply text-orange-500 dark:text-orange-400 font-medium; }
-.priority-low { @apply text-gray-500 dark:text-gray-400; }
+.priority-low { @apply text-[hsl(var(--muted-foreground))]; }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
@@ -104,15 +103,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-gray-800;
+  background: hsl(var(--muted));
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  background: hsl(var(--border));
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400 dark:bg-gray-500;
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
 /* Animations */

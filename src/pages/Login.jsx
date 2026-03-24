@@ -42,25 +42,25 @@ export default function Login() {
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        <Card className="p-8 backdrop-blur-sm bg-white/95 shadow-2xl">
+        <Card className="p-8 backdrop-blur-sm bg-[hsl(var(--card))]/95 shadow-2xl">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 mb-4 shadow-lg shadow-blue-500/30">
               <Newspaper className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">News Manager</h1>
-            <p className="text-gray-500 mt-2">Painel de Gerenciamento de Noticias</p>
+            <h1 className="text-2xl font-bold text-[hsl(var(--foreground))]">News Manager</h1>
+            <p className="text-[hsl(var(--muted-foreground))] mt-2">Painel de Gerenciamento de Noticias</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm animate-shake">
+              <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm animate-shake">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1.5">
                 Usuario
               </label>
               <InputWithIcon
@@ -75,7 +75,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1.5">
                 Senha
               </label>
               <InputWithIcon
