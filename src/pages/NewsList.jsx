@@ -390,7 +390,7 @@ export default function NewsList() {
                 <Filter className="w-4 h-4" />
                 Filtros
                 {hasActiveFilters && (
-                  <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                  <span className="w-2 h-2 rounded-full bg-white dark:bg-blue-200 animate-pulse"></span>
                 )}
               </Button>
             </div>
