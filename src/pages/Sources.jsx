@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { fetchSources, getCategories } from '../lib/supabase'
 import { useDebounce } from '../hooks/useDebounce'
+import { useAutoRefresh } from '@/hooks/useAutoRefresh'
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
+import { toast } from '@/hooks/useToast'
 import {
   Radio,
   ExternalLink,
@@ -24,6 +27,7 @@ import {
   SelectItem,
   SelectValue
 } from '@/components/ui'
+import { intervals } from '@/hooks/useAutoRefresh'
 
 function SourceCardSkeleton() {
   return (
@@ -57,11 +61,7 @@ export default function Sources() {
   const debouncedSearch = useDebounce(search, 300)
   const categories = getCategories()
 
-  useEffect(() => {
-    loadSources()
-  }, [])
-
-  const loadSources = async () => {
+  const loadSources = useCallback(async () => {
     try {
       setIsLoading(true)
       const data = await fetchSources()
@@ -72,7 +72,24 @@ export default function Sources() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  const { interval, setInterval, countdown, isRefreshing, refresh, isEnabled } = useAutoRefresh(loadSources)
+
+  useKeyboardShortcuts({
+    onRefresh: () => {
+      refresh()
+      toast({ title: 'Dados atualizados', variant: 'success' })
+    },
+    onShowShortcuts: () => {
+      const event = new CustomEvent('show-keyboard-shortcuts')
+      window.dispatchEvent(event)
+    }
+  })
+
+  useEffect(() => {
+    loadSources()
+  }, [loadSources])
 
   const getCategoryLabel = (value) => {
     return categories.find(c => c.value === value)?.label || value
@@ -105,19 +122,34 @@ export default function Sources() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">Fontes RSS</h2>
-          <p className="text-gray-500 mt-1">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">Fontes RSS</h2>
+          <p className="text-[hsl(var(--muted-foreground))] mt-1">
             {activeSources} ativas de {sources.length} fontes configuradas
           </p>
         </div>
-        <Button
-          variant="secondary"
-          onClick={loadSources}
-          disabled={isLoading}
-        >
-          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Atualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={interval} onValueChange={setInterval}>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(intervals).map(([value, { label }]) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              refresh()
+              toast({ title: 'Dados atualizados', variant: 'success' })
+            }}
+            disabled={isLoading || isRefreshing}
+          >
+            <RefreshCw className={`w-4 h-4 ${(isLoading || isRefreshing) ? 'animate-spin' : ''}`} />
+            {isEnabled && countdown > 0 ? `${countdown}s` : 'Atualizar'}
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -155,8 +187,8 @@ export default function Sources() {
 
       {/* Error */}
       {error && (
-        <Card className="bg-gradient-to-r from-red-50 to-rose-50 border-red-200">
-          <CardContent className="p-4 text-red-700">
+        <Card className="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border-red-200 dark:border-red-800">
+          <CardContent className="p-4 text-red-700 dark:text-red-400">
             Erro ao carregar fontes: {error}
           </CardContent>
         </Card>
@@ -175,26 +207,26 @@ export default function Sources() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredSources.map(source => (
-            <Card key={source.id} className="p-5 group">
+            <Card key={source.id} className="p-5 group card-hover">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`p-2.5 rounded-xl shadow-sm ${source.is_active ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' : 'bg-gray-200'}`}>
+                  <div className={`p-2.5 rounded-xl shadow-sm ${source.is_active ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
                     <Radio className={`w-5 h-5 ${source.is_active ? 'text-white' : 'text-gray-400'}`} />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate">{source.name}</h3>
+                    <h3 className="font-semibold text-[hsl(var(--foreground))] truncate">{source.name}</h3>
                     <Badge variant={source.category} className="mt-1.5">
                       {getCategoryLabel(source.category)}
                     </Badge>
                   </div>
                 </div>
                 {source.is_active ? (
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-medium">
                     <CheckCircle className="w-3.5 h-3.5" />
                     Ativo
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-medium">
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs font-medium">
                     <XCircle className="w-3.5 h-3.5" />
                     Inativo
                   </div>
@@ -202,36 +234,36 @@ export default function Sources() {
               </div>
 
               <div className="mt-4 space-y-2.5 text-sm">
-                <div className="flex items-center justify-between text-gray-600">
+                <div className="flex items-center justify-between text-[hsl(var(--muted-foreground))]">
                   <div className="flex items-center gap-1.5">
-                    <Globe className="w-4 h-4 text-gray-400" />
+                    <Globe className="w-4 h-4" />
                     <span>Pais / Idioma</span>
                   </div>
-                  <span className="font-medium text-gray-900">{source.country || '-'} / {source.language || 'en'}</span>
+                  <span className="font-medium text-[hsl(var(--foreground))]">{source.country || '-'} / {source.language || 'en'}</span>
                 </div>
-                <div className="flex items-center justify-between text-gray-600">
+                <div className="flex items-center justify-between text-[hsl(var(--muted-foreground))]">
                   <div className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4 text-gray-400" />
+                    <Clock className="w-4 h-4" />
                     <span>Ultimo fetch</span>
                   </div>
-                  <span className="font-medium text-gray-900 text-xs">{formatDate(source.last_fetch)}</span>
+                  <span className="font-medium text-[hsl(var(--foreground))] text-xs">{formatDate(source.last_fetch)}</span>
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                <div className="flex items-center justify-between pt-2 border-t border-[hsl(var(--border))]">
                   <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">{source.fetch_count || 0}</p>
-                    <p className="text-xs text-gray-500">Fetches</p>
+                    <p className="text-lg font-bold text-[hsl(var(--foreground))]">{source.fetch_count || 0}</p>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))]">Fetches</p>
                   </div>
                   <div className="text-center">
-                    <p className={`text-lg font-bold ${source.error_count > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                    <p className={`text-lg font-bold ${source.error_count > 0 ? 'text-red-600 dark:text-red-400' : 'text-[hsl(var(--foreground))]'}`}>
                       {source.error_count || 0}
                     </p>
-                    <p className="text-xs text-gray-500">Erros</p>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))]">Erros</p>
                   </div>
                   <a
                     href={source.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
                   >
                     <ExternalLink className="w-4 h-4" />
                     Feed
@@ -245,11 +277,11 @@ export default function Sources() {
 
       {!isLoading && filteredSources.length === 0 && (
         <Card className="p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Radio className="w-8 h-8 text-gray-400" />
+          <div className="w-16 h-16 bg-[hsl(var(--muted))] rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Radio className="w-8 h-8 text-[hsl(var(--muted-foreground))]" />
           </div>
-          <p className="text-gray-500 font-medium">Nenhuma fonte encontrada</p>
-          <p className="text-gray-400 text-sm mt-1">Tente ajustar os filtros de busca</p>
+          <p className="text-[hsl(var(--muted-foreground))] font-medium">Nenhuma fonte encontrada</p>
+          <p className="text-[hsl(var(--muted-foreground))] text-sm mt-1 opacity-80">Tente ajustar os filtros de busca</p>
         </Card>
       )}
     </div>

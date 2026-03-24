@@ -1,5 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { fetchStats, fetchLogs, getCategories } from '../lib/supabase'
+import { useAutoRefresh } from '@/hooks/useAutoRefresh'
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
+import { toast } from '@/hooks/useToast'
 import {
   BarChart3,
   TrendingUp,
@@ -23,8 +26,14 @@ import {
   TableHead,
   TableRow,
   TableCell,
-  Skeleton
+  Skeleton,
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue
 } from '@/components/ui'
+import { intervals } from '@/hooks/useAutoRefresh'
 
 function StatCard({ icon: Icon, label, value, color = 'blue' }) {
   const colorConfig = {
@@ -49,12 +58,12 @@ function StatCard({ icon: Icon, label, value, color = 'blue' }) {
   const config = colorConfig[color]
 
   return (
-    <Card className="relative overflow-hidden group">
+    <Card className="relative overflow-hidden group card-hover">
       <div className="p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-500">{label}</p>
-            <p className="text-3xl font-bold text-gray-900">{value ?? '-'}</p>
+            <p className="text-sm font-medium text-[hsl(var(--muted-foreground))]">{label}</p>
+            <p className="text-3xl font-bold text-[hsl(var(--foreground))]">{value ?? '-'}</p>
           </div>
           <div className={`p-3 rounded-xl ${config.bg} shadow-lg ${config.shadow}`}>
             <Icon className="w-6 h-6 text-white" />
@@ -100,11 +109,7 @@ export default function Stats() {
 
   const categories = getCategories()
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
       const [statsData, logsData] = await Promise.all([
@@ -119,7 +124,24 @@ export default function Stats() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  const { interval, setInterval, countdown, isRefreshing, refresh, isEnabled } = useAutoRefresh(loadData)
+
+  useKeyboardShortcuts({
+    onRefresh: () => {
+      refresh()
+      toast({ title: 'Dados atualizados', variant: 'success' })
+    },
+    onShowShortcuts: () => {
+      const event = new CustomEvent('show-keyboard-shortcuts')
+      window.dispatchEvent(event)
+    }
+  })
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const formatDate = (dateString) => {
     if (!dateString) return '-'
@@ -137,23 +159,38 @@ export default function Stats() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">Estatisticas</h2>
-          <p className="text-gray-500 mt-1">Metricas e logs do sistema</p>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">Estatisticas</h2>
+          <p className="text-[hsl(var(--muted-foreground))] mt-1">Metricas e logs do sistema</p>
         </div>
-        <Button
-          variant="secondary"
-          onClick={loadData}
-          disabled={isLoading}
-        >
-          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Atualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={interval} onValueChange={setInterval}>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(intervals).map(([value, { label }]) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              refresh()
+              toast({ title: 'Dados atualizados', variant: 'success' })
+            }}
+            disabled={isLoading || isRefreshing}
+          >
+            <RefreshCw className={`w-4 h-4 ${(isLoading || isRefreshing) ? 'animate-spin' : ''}`} />
+            {isEnabled && countdown > 0 ? `${countdown}s` : 'Atualizar'}
+          </Button>
+        </div>
       </div>
 
       {/* Error */}
       {error && (
-        <Card className="bg-gradient-to-r from-red-50 to-rose-50 border-red-200">
-          <CardContent className="p-4 text-red-700">
+        <Card className="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border-red-200 dark:border-red-800">
+          <CardContent className="p-4 text-red-700 dark:text-red-400">
             Erro ao carregar estatisticas: {error}
           </CardContent>
         </Card>
@@ -200,10 +237,10 @@ export default function Stats() {
 
       {/* Categories Table */}
       <Card className="overflow-hidden">
-        <CardHeader className="p-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+        <CardHeader className="p-5 border-b border-[hsl(var(--border))] bg-gradient-to-r from-[hsl(var(--muted))] to-[hsl(var(--background))]">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <BarChart3 className="w-4 h-4 text-blue-600" />
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             </div>
             <CardTitle className="text-base">Noticias por Categoria</CardTitle>
           </div>
@@ -233,11 +270,11 @@ export default function Stats() {
                     <TableCell>
                       <Badge variant={cat.value}>{cat.label}</Badge>
                     </TableCell>
-                    <TableCell className="text-right font-semibold text-gray-900">
+                    <TableCell className="text-right font-semibold text-[hsl(var(--foreground))]">
                       {count.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right">
-                      <span className="text-gray-500">{percentage}%</span>
+                      <span className="text-[hsl(var(--muted-foreground))]">{percentage}%</span>
                     </TableCell>
                   </TableRow>
                 )
@@ -249,10 +286,10 @@ export default function Stats() {
 
       {/* Recent Fetch Logs */}
       <Card className="overflow-hidden">
-        <CardHeader className="p-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+        <CardHeader className="p-5 border-b border-[hsl(var(--border))] bg-gradient-to-r from-[hsl(var(--muted))] to-[hsl(var(--background))]">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-violet-100 rounded-lg">
-              <Activity className="w-4 h-4 text-violet-600" />
+            <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-lg">
+              <Activity className="w-4 h-4 text-violet-600 dark:text-violet-400" />
             </div>
             <CardTitle className="text-base">Logs de Fetch Recentes</CardTitle>
           </div>
@@ -278,16 +315,16 @@ export default function Stats() {
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2">
-                    <Activity className="w-8 h-8 text-gray-300" />
-                    <p className="text-gray-500 font-medium">Nenhum log encontrado</p>
-                    <p className="text-gray-400 text-sm">Os logs aparecerao aqui quando houver coletas</p>
+                    <Activity className="w-8 h-8 text-[hsl(var(--muted-foreground))]" />
+                    <p className="text-[hsl(var(--muted-foreground))] font-medium">Nenhum log encontrado</p>
+                    <p className="text-[hsl(var(--muted-foreground))] text-sm opacity-80">Os logs aparecerao aqui quando houver coletas</p>
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
               logs.map(log => (
                 <TableRow key={log.id}>
-                  <TableCell className="text-sm font-medium text-gray-900">
+                  <TableCell className="text-sm font-medium text-[hsl(var(--foreground))]">
                     {log.sources?.name || `Source #${log.source_id}`}
                   </TableCell>
                   <TableCell>
@@ -303,13 +340,13 @@ export default function Stats() {
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-right text-sm font-medium text-gray-700">
+                  <TableCell className="text-right text-sm font-medium text-[hsl(var(--foreground))]">
                     {log.news_count || 0}
                   </TableCell>
-                  <TableCell className="text-right text-sm text-gray-500">
+                  <TableCell className="text-right text-sm text-[hsl(var(--muted-foreground))]">
                     {log.duration_ms ? `${log.duration_ms}ms` : '-'}
                   </TableCell>
-                  <TableCell className="text-sm text-gray-500">
+                  <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">
                     {formatDate(log.created_at)}
                   </TableCell>
                 </TableRow>

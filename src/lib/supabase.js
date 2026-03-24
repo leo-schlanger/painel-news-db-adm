@@ -150,6 +150,206 @@ export async function fetchStats() {
   }
 }
 
+// Fetch statistics with trends (comparison with previous period)
+export async function fetchStatsWithTrends() {
+  const now = new Date()
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  const twoDaysAgo = new Date(now)
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
+
+  // Current stats
+  const stats = await fetchStats()
+
+  // News 24-48h ago for comparison
+  const { count: newsYesterday } = await supabase
+    .from('news')
+    .select('*', { count: 'exact', head: true })
+    .gte('fetched_at', twoDaysAgo.toISOString())
+    .lt('fetched_at', yesterday.toISOString())
+
+  // Calculate trends
+  const news24hTrend = newsYesterday > 0
+    ? ((stats.newsLast24h - newsYesterday) / newsYesterday * 100).toFixed(1)
+    : 0
+
+  return {
+    ...stats,
+    trends: {
+      newsLast24h: parseFloat(news24hTrend)
+    }
+  }
+}
+
+// Fetch news over time (for line chart)
+export async function fetchNewsOverTime(days = 7) {
+  const startDate = new Date()
+  startDate.setDate(startDate.getDate() - days)
+  startDate.setHours(0, 0, 0, 0)
+
+  const { data, error } = await supabase
+    .from('news')
+    .select('fetched_at')
+    .gte('fetched_at', startDate.toISOString())
+    .order('fetched_at', { ascending: true })
+
+  if (error) throw error
+
+  // Group by day
+  const grouped = {}
+  const categories = getCategories()
+
+  for (let i = 0; i < days; i++) {
+    const date = new Date(startDate)
+    date.setDate(date.getDate() + i)
+    const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+    grouped[dateStr] = 0
+  }
+
+  data?.forEach(item => {
+    const date = new Date(item.fetched_at)
+    const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+    if (grouped[dateStr] !== undefined) {
+      grouped[dateStr]++
+    }
+  })
+
+  return Object.entries(grouped).map(([date, count]) => ({
+    date,
+    count
+  }))
+}
+
+// Fetch news by category (for bar chart)
+export async function fetchNewsByCategory() {
+  const { data, error } = await supabase
+    .from('news')
+    .select('category')
+
+  if (error) throw error
+
+  const categories = getCategories()
+  const grouped = {}
+
+  categories.forEach(cat => {
+    grouped[cat.value] = 0
+  })
+
+  data?.forEach(item => {
+    if (grouped[item.category] !== undefined) {
+      grouped[item.category]++
+    }
+  })
+
+  return categories.map(cat => ({
+    category: cat.label,
+    value: cat.value,
+    count: grouped[cat.value] || 0
+  }))
+}
+
+// Fetch fetch logs over time (for area chart)
+export async function fetchLogsOverTime(days = 7) {
+  const startDate = new Date()
+  startDate.setDate(startDate.getDate() - days)
+  startDate.setHours(0, 0, 0, 0)
+
+  const { data, error } = await supabase
+    .from('fetch_logs')
+    .select('created_at, status, news_count')
+    .gte('created_at', startDate.toISOString())
+    .order('created_at', { ascending: true })
+
+  if (error) throw error
+
+  // Group by day
+  const grouped = {}
+
+  for (let i = 0; i < days; i++) {
+    const date = new Date(startDate)
+    date.setDate(date.getDate() + i)
+    const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+    grouped[dateStr] = { fetches: 0, news: 0, errors: 0 }
+  }
+
+  data?.forEach(item => {
+    const date = new Date(item.created_at)
+    const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+    if (grouped[dateStr]) {
+      grouped[dateStr].fetches++
+      grouped[dateStr].news += item.news_count || 0
+      if (item.status === 'error') {
+        grouped[dateStr].errors++
+      }
+    }
+  })
+
+  return Object.entries(grouped).map(([date, data]) => ({
+    date,
+    ...data
+  }))
+}
+
+// Fetch source performance analytics
+export async function fetchSourceAnalytics() {
+  const { data: logs, error } = await supabase
+    .from('fetch_logs')
+    .select(`
+      source_id,
+      status,
+      news_count,
+      duration_ms,
+      sources (
+        name
+      )
+    `)
+    .order('created_at', { ascending: false })
+    .limit(500)
+
+  if (error) throw error
+
+  // Group by source
+  const sourceStats = {}
+
+  logs?.forEach(log => {
+    const sourceId = log.source_id
+    if (!sourceStats[sourceId]) {
+      sourceStats[sourceId] = {
+        name: log.sources?.name || `Source #${sourceId}`,
+        totalFetches: 0,
+        successfulFetches: 0,
+        totalNews: 0,
+        totalDuration: 0,
+        errors: 0
+      }
+    }
+
+    sourceStats[sourceId].totalFetches++
+    sourceStats[sourceId].totalNews += log.news_count || 0
+    sourceStats[sourceId].totalDuration += log.duration_ms || 0
+
+    if (log.status === 'success') {
+      sourceStats[sourceId].successfulFetches++
+    } else {
+      sourceStats[sourceId].errors++
+    }
+  })
+
+  return Object.entries(sourceStats).map(([id, stats]) => ({
+    id,
+    name: stats.name,
+    successRate: stats.totalFetches > 0
+      ? ((stats.successfulFetches / stats.totalFetches) * 100).toFixed(1)
+      : 0,
+    avgDuration: stats.totalFetches > 0
+      ? Math.round(stats.totalDuration / stats.totalFetches)
+      : 0,
+    totalNews: stats.totalNews,
+    totalFetches: stats.totalFetches,
+    errors: stats.errors
+  })).sort((a, b) => b.totalNews - a.totalNews)
+}
+
 // Fetch recent fetch logs
 export async function fetchLogs(limit = 50) {
   const { data, error } = await supabase
