@@ -287,7 +287,7 @@ export default function Dashboard() {
       setIsLoading(true)
       const [statsData, newsData, chartData] = await Promise.all([
         fetchStatsWithTrends(),
-        fetchNews({ perPage: 10, orderBy: 'priority_score', orderDir: 'desc' }),
+        fetchNews({ perPage: 10, orderBy: 'priority_score', orderDir: 'desc', minimal: true }),
         fetchNewsOverTime(7)
       ])
       setStats(statsData)

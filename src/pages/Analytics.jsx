@@ -135,13 +135,13 @@ export default function Analytics() {
   const [categoryData, setCategoryData] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [period, setPeriod] = useState('7')
+  const period = 7 // Fixed at 7 days for egress optimization
 
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
-      const days = parseInt(period)
+      const days = period
 
       const [sources, news, logs, categories] = await Promise.all([
         fetchSourceAnalytics(),
@@ -160,7 +160,7 @@ export default function Analytics() {
     } finally {
       setIsLoading(false)
     }
-  }, [period])
+  }, [])
 
   const { interval, setInterval, countdown, isRefreshing, refresh, isEnabled } = useAutoRefresh(loadData)
 
@@ -229,16 +229,7 @@ export default function Analytics() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">Ultimos 7 dias</SelectItem>
-              <SelectItem value="14">Ultimos 14 dias</SelectItem>
-              <SelectItem value="30">Ultimos 30 dias</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Period selector removed - fixed at 7 days for egress optimization */}
           <Select value={interval} onValueChange={setInterval}>
             <SelectTrigger className="w-36">
               <SelectValue />
